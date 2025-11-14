@@ -19,7 +19,7 @@ interface CollectionDetailClientProps {
 export function CollectionDetailClient({ collection, initialPlaces }: CollectionDetailClientProps) {
   const { user } = useAuth();
   const supabase = createClient();
-  const locale = 'en'; // TODO: Get from next-intl
+  const locale = 'tr'; // Turkish as primary language
 
   const [places, setPlaces] = useState(initialPlaces);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -145,12 +145,12 @@ export function CollectionDetailClient({ collection, initialPlaces }: Collection
         <div className="flex items-center gap-3">
           <Button onClick={() => setAddDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            Add Place
+            Mekan Ekle
           </Button>
           {saving && (
             <div className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
               <Loader2 className="h-4 w-4 animate-spin" />
-              Saving order...
+              Sıralama kaydediliyor...
             </div>
           )}
         </div>
@@ -162,17 +162,17 @@ export function CollectionDetailClient({ collection, initialPlaces }: Collection
           <CardContent className="flex flex-col items-center justify-center py-12">
             <MapPin className="h-12 w-12 text-neutral-400 dark:text-neutral-600" />
             <h3 className="mt-4 text-lg font-semibold text-neutral-900 dark:text-neutral-50">
-              No places yet
+              Henüz mekan yok
             </h3>
             <p className="mt-2 text-center text-sm text-neutral-600 dark:text-neutral-400">
               {isOwner
-                ? 'Add your first place to this collection'
-                : 'This collection is empty'}
+                ? 'Bu koleksiyona ilk mekanını ekle'
+                : 'Bu koleksiyon boş'}
             </p>
             {isOwner && (
               <Button onClick={() => setAddDialogOpen(true)} className="mt-6">
                 <Plus className="mr-2 h-4 w-4" />
-                Add Place
+                Mekan Ekle
               </Button>
             )}
           </CardContent>

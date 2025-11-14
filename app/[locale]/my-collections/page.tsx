@@ -60,7 +60,7 @@ export default function MyCollectionsPage() {
         .select(`
           *,
           location:locations(id, names),
-          category:categories(id, names)
+          category:categories!collections_category_id_fkey(id, names)
         `)
         .eq('creator_id', user.id)
         .order('created_at', { ascending: false });

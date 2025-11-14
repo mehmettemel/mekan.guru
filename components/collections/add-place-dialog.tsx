@@ -138,9 +138,9 @@ export function AddPlaceDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[700px]">
         <DialogHeader>
-          <DialogTitle>Add Place to Collection</DialogTitle>
+          <DialogTitle>Koleksiyona Mekan Ekle</DialogTitle>
           <DialogDescription>
-            Search and select a place to add to your collection
+            Koleksiyonuna eklemek istediğin mekanı ara ve seç
           </DialogDescription>
         </DialogHeader>
 
@@ -152,7 +152,7 @@ export function AddPlaceDialog({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                placeholder="Search places..."
+                placeholder="Mekan ara..."
               />
             </div>
             <Button onClick={handleSearch} disabled={searching}>
@@ -172,7 +172,7 @@ export function AddPlaceDialog({
               </div>
             ) : places.length === 0 ? (
               <div className="py-8 text-center text-sm text-neutral-600 dark:text-neutral-400">
-                No places found
+                Mekan bulunamadı
               </div>
             ) : (
               places.map((place) => (
@@ -214,12 +214,12 @@ export function AddPlaceDialog({
           {/* Curator Note */}
           {selectedPlace && (
             <div className="space-y-2">
-              <Label htmlFor="curator-note">Curator's Note (Optional)</Label>
+              <Label htmlFor="curator-note">Notun (Opsiyonel)</Label>
               <Textarea
                 id="curator-note"
                 value={curatorNote}
                 onChange={(e) => setCuratorNote(e.target.value)}
-                placeholder="Add a personal note about why you're recommending this place..."
+                placeholder="Bu mekanı neden tavsiye ettiğin hakkında kişisel notunu ekle..."
                 rows={3}
               />
             </div>
@@ -228,11 +228,11 @@ export function AddPlaceDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
-            Cancel
+            İptal
           </Button>
           <Button onClick={handleAdd} disabled={!selectedPlace || loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Add Place
+            Mekan Ekle
           </Button>
         </DialogFooter>
       </DialogContent>
