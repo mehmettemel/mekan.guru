@@ -46,11 +46,8 @@ export function CollectionDialog({
   const [categories, setCategories] = useState<any[]>([]);
 
   // Form state
-  const [slug, setSlug] = useState('');
-  const [nameEn, setNameEn] = useState('');
-  const [nameTr, setNameTr] = useState('');
-  const [descEn, setDescEn] = useState('');
-  const [descTr, setDescTr] = useState('');
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [locationId, setLocationId] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [tags, setTags] = useState('');
@@ -58,11 +55,8 @@ export function CollectionDialog({
   // Load form data when editing
   useEffect(() => {
     if (collection) {
-      setSlug(collection.slug || '');
-      setNameEn(collection.names?.en || '');
-      setNameTr(collection.names?.tr || '');
-      setDescEn(collection.descriptions?.en || '');
-      setDescTr(collection.descriptions?.tr || '');
+      setName(collection.names?.tr || '');
+      setDescription(collection.descriptions?.tr || '');
       setLocationId(collection.location_id || '');
       setCategoryId(collection.category_id || '');
       setTags(collection.tags?.join(', ') || '');
@@ -98,33 +92,38 @@ export function CollectionDialog({
   };
 
   const generateSlug = (name: string) => {
+    // Turkish character replacements
+    const turkishMap: { [key: string]: string } = {
+      'ç': 'c', 'ğ': 'g', 'ı': 'i', 'İ': 'i', 'ö': 'o', 'ş': 's', 'ü': 'u',
+      'Ç': 'c', 'Ğ': 'g', 'Ö': 'o', 'Ş': 's', 'Ü': 'u'
+    };
+
     return name
+      .split('')
+      .map(char => turkishMap[char] || char)
+      .join('')
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
   };
 
-  const handleNameEnChange = (value: string) => {
-    setNameEn(value);
-    if (!isEdit && !slug) {
-      setSlug(generateSlug(value));
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!slug || !nameEn || !nameTr || !locationId || !categoryId) {
-      alert('Please fill in all required fields');
+    if (!name || !locationId || !categoryId) {
+      alert('Lütfen tüm zorunlu alanları doldurun');
       return;
     }
 
     setLoading(true);
 
     try {
+      // Generate slug from Turkish name
+      const slug = generateSlug(name) + '-' + Math.random().toString(36).substring(2, 6);
+
       const collectionData = {
-        slug,
-        names: { en: nameEn, tr: nameTr },
-        descriptions: { en: descEn, tr: descTr },
+        slug: isEdit ? collection.slug : slug,
+        names: { tr: name, en: name }, // Same for both, searchable in both languages
+        descriptions: { tr: description, en: description },
         creator_id: userId,
         location_id: locationId,
         category_id: categoryId,
@@ -133,9 +132,11 @@ export function CollectionDialog({
       };
 
       if (isEdit) {
+        // Don't update slug when editing
+        const { slug: _, ...updateData } = collectionData;
         const { error } = await supabase
           .from('collections')
-          .update(collectionData)
+          .update(updateData)
           .eq('id', collection.id);
 
         if (error) throw error;
@@ -152,18 +153,15 @@ export function CollectionDialog({
       resetForm();
     } catch (error: any) {
       console.error('Error saving collection:', error);
-      alert(error.message || 'Failed to save collection');
+      alert(error.message || 'Koleksiyon kaydedilemedi');
     } finally {
       setLoading(false);
     }
   };
 
   const resetForm = () => {
-    setSlug('');
-    setNameEn('');
-    setNameTr('');
-    setDescEn('');
-    setDescTr('');
+    setName('');
+    setDescription('');
     setLocationId('');
     setCategoryId('');
     setTags('');
@@ -173,80 +171,40 @@ export function CollectionDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>{isEdit ? 'Edit Collection' : 'Create Collection'}</DialogTitle>
+          <DialogTitle>{isEdit ? 'Koleksiyonu Düzenle' : 'Yeni Koleksiyon'}</DialogTitle>
           <DialogDescription>
             {isEdit
-              ? 'Update your collection details'
-              : 'Create a new curated collection of places'}
+              ? 'Koleksiyon bilgilerini güncelle'
+              : 'Favori mekanlarından yeni bir koleksiyon oluştur'}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Slug */}
+          {/* Name */}
           <div className="space-y-2">
-            <Label htmlFor="slug">
-              Slug <span className="text-red-500">*</span>
+            <Label htmlFor="name">
+              Koleksiyon Adı <span className="text-red-500">*</span>
             </Label>
             <Input
-              id="slug"
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
-              placeholder="best-coffee-shops"
-              disabled={loading}
-              required
-            />
-          </div>
-
-          {/* Name EN */}
-          <div className="space-y-2">
-            <Label htmlFor="name-en">
-              Name (English) <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="name-en"
-              value={nameEn}
-              onChange={(e) => handleNameEnChange(e.target.value)}
-              placeholder="Best Coffee Shops in Istanbul"
-              disabled={loading}
-              required
-            />
-          </div>
-
-          {/* Name TR */}
-          <div className="space-y-2">
-            <Label htmlFor="name-tr">
-              Name (Turkish) <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="name-tr"
-              value={nameTr}
-              onChange={(e) => setNameTr(e.target.value)}
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               placeholder="İstanbul'daki En İyi Kahve Dükkanları"
               disabled={loading}
               required
             />
+            <p className="text-xs text-neutral-500">
+              URL otomatik oluşturulacak
+            </p>
           </div>
 
-          {/* Description EN */}
+          {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="desc-en">Description (English)</Label>
+            <Label htmlFor="description">Açıklama</Label>
             <Textarea
-              id="desc-en"
-              value={descEn}
-              onChange={(e) => setDescEn(e.target.value)}
-              placeholder="My favorite coffee spots in the city..."
-              disabled={loading}
-              rows={3}
-            />
-          </div>
-
-          {/* Description TR */}
-          <div className="space-y-2">
-            <Label htmlFor="desc-tr">Description (Turkish)</Label>
-            <Textarea
-              id="desc-tr"
-              value={descTr}
-              onChange={(e) => setDescTr(e.target.value)}
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               placeholder="Şehirdeki favori kahve mekanlarım..."
               disabled={loading}
               rows={3}
@@ -256,16 +214,16 @@ export function CollectionDialog({
           {/* Location */}
           <div className="space-y-2">
             <Label htmlFor="location">
-              Location <span className="text-red-500">*</span>
+              Şehir <span className="text-red-500">*</span>
             </Label>
             <Select value={locationId} onValueChange={setLocationId} disabled={loading}>
               <SelectTrigger>
-                <SelectValue placeholder="Select location" />
+                <SelectValue placeholder="Şehir seç" />
               </SelectTrigger>
               <SelectContent>
                 {locations.map((location) => (
                   <SelectItem key={location.id} value={location.id}>
-                    {location.names.en}
+                    {location.names.tr}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -275,16 +233,16 @@ export function CollectionDialog({
           {/* Category */}
           <div className="space-y-2">
             <Label htmlFor="category">
-              Category <span className="text-red-500">*</span>
+              Kategori <span className="text-red-500">*</span>
             </Label>
             <Select value={categoryId} onValueChange={setCategoryId} disabled={loading}>
               <SelectTrigger>
-                <SelectValue placeholder="Select category" />
+                <SelectValue placeholder="Kategori seç" />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((category) => (
                   <SelectItem key={category.id} value={category.id}>
-                    {category.names.en}
+                    {category.names.tr}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -293,16 +251,16 @@ export function CollectionDialog({
 
           {/* Tags */}
           <div className="space-y-2">
-            <Label htmlFor="tags">Tags</Label>
+            <Label htmlFor="tags">Etiketler</Label>
             <Input
               id="tags"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
-              placeholder="coffee, breakfast, cozy (comma separated)"
+              placeholder="kahve, kahvaltı, samimi (virgülle ayır)"
               disabled={loading}
             />
             <p className="text-xs text-neutral-500">
-              Separate multiple tags with commas
+              Birden fazla etiket için virgül kullanın
             </p>
           </div>
 
@@ -313,11 +271,11 @@ export function CollectionDialog({
               onClick={() => onOpenChange(false)}
               disabled={loading}
             >
-              Cancel
+              İptal
             </Button>
             <Button type="submit" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isEdit ? 'Update' : 'Create'}
+              {isEdit ? 'Güncelle' : 'Oluştur'}
             </Button>
           </DialogFooter>
         </form>

@@ -127,15 +127,15 @@ export default function MyCollectionsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-neutral-900 dark:text-neutral-50">
-            My Collections
+            Koleksiyonlarım
           </h1>
           <p className="mt-2 text-neutral-600 dark:text-neutral-400">
-            Create and manage your curated place collections
+            Favori mekanlarından koleksiyonlar oluştur ve yönet
           </p>
         </div>
         <Button onClick={() => setDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
-          New Collection
+          Yeni Koleksiyon
         </Button>
       </div>
 
@@ -143,7 +143,7 @@ export default function MyCollectionsPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Collections</CardTitle>
+            <CardTitle className="text-sm font-medium">Toplam Koleksiyon</CardTitle>
             <FolderTree className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
           </CardHeader>
           <CardContent>
@@ -153,7 +153,7 @@ export default function MyCollectionsPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Places</CardTitle>
+            <CardTitle className="text-sm font-medium">Toplam Mekan</CardTitle>
             <MapPin className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
           </CardHeader>
           <CardContent>
@@ -165,7 +165,7 @@ export default function MyCollectionsPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Featured</CardTitle>
+            <CardTitle className="text-sm font-medium">Öne Çıkan</CardTitle>
             <Star className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
           </CardHeader>
           <CardContent>
@@ -182,14 +182,14 @@ export default function MyCollectionsPage() {
           <CardContent className="flex flex-col items-center justify-center py-12">
             <FolderTree className="h-12 w-12 text-neutral-400 dark:text-neutral-600" />
             <h3 className="mt-4 text-lg font-semibold text-neutral-900 dark:text-neutral-50">
-              No collections yet
+              Henüz koleksiyon yok
             </h3>
             <p className="mt-2 text-center text-sm text-neutral-600 dark:text-neutral-400">
-              Create your first collection to start curating your favorite places
+              Favori mekanlarını listelemek için ilk koleksiyonunu oluştur
             </p>
             <Button onClick={() => setDialogOpen(true)} className="mt-6">
               <Plus className="mr-2 h-4 w-4" />
-              Create Collection
+              Koleksiyon Oluştur
             </Button>
           </CardContent>
         </Card>

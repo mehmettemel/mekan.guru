@@ -26,7 +26,7 @@ interface CollectionCardProps {
 }
 
 export function CollectionCard({ collection, onEdit, onDelete }: CollectionCardProps) {
-  const locale = 'en'; // TODO: Get from next-intl
+  const locale = 'tr'; // Turkish as primary language
 
   return (
     <Card className="group relative flex flex-col transition-shadow hover:shadow-lg">
@@ -53,7 +53,7 @@ export function CollectionCard({ collection, onEdit, onDelete }: CollectionCardP
       <CardContent className="flex-1 space-y-3">
         <div className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
           <MapPin className="h-4 w-4" />
-          <span>{collection.location?.names[locale as 'en' | 'tr'] || 'Unknown'}</span>
+          <span>{collection.location?.names[locale as 'en' | 'tr'] || 'Bilinmiyor'}</span>
         </div>
 
         <div className="flex items-center gap-4 text-sm">
@@ -61,18 +61,18 @@ export function CollectionCard({ collection, onEdit, onDelete }: CollectionCardP
             <span className="font-semibold text-neutral-900 dark:text-neutral-50">
               {collection.places_count || 0}
             </span>
-            <span className="ml-1 text-neutral-600 dark:text-neutral-400">places</span>
+            <span className="ml-1 text-neutral-600 dark:text-neutral-400">mekan</span>
           </div>
           <div>
             <span className="font-semibold text-neutral-900 dark:text-neutral-50">
               {collection.vote_count}
             </span>
-            <span className="ml-1 text-neutral-600 dark:text-neutral-400">votes</span>
+            <span className="ml-1 text-neutral-600 dark:text-neutral-400">oy</span>
           </div>
         </div>
 
         <div className="inline-flex rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs font-medium text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100">
-          {collection.category?.names[locale as 'en' | 'tr'] || 'Uncategorized'}
+          {collection.category?.names[locale as 'en' | 'tr'] || 'Kategorisiz'}
         </div>
       </CardContent>
 
@@ -84,7 +84,7 @@ export function CollectionCard({ collection, onEdit, onDelete }: CollectionCardP
           onClick={onEdit}
         >
           <Edit className="mr-2 h-3.5 w-3.5" />
-          Edit
+          Düzenle
         </Button>
         <Button
           variant="outline"
@@ -93,7 +93,7 @@ export function CollectionCard({ collection, onEdit, onDelete }: CollectionCardP
         >
           <Link href={`/collections/${collection.slug}`}>
             <ExternalLink className="mr-2 h-3.5 w-3.5" />
-            View
+            Görüntüle
           </Link>
         </Button>
         {onDelete && (
