@@ -6,11 +6,9 @@ import { Sparkles, Utensils, Coffee, Gem, Beer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { Category } from '@/lib/api/categories';
-import type { Locale } from '@/i18n/config';
 
 interface CategoryFilterProps {
   categories: Category[];
-  locale: Locale;
 }
 
 // Icon mapping for categories
@@ -34,7 +32,7 @@ const getCategoryIcon = (slug: string) => {
   );
 };
 
-export function CategoryFilter({ categories, locale }: CategoryFilterProps) {
+export function CategoryFilter({ categories }: CategoryFilterProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -69,9 +67,9 @@ export function CategoryFilter({ categories, locale }: CategoryFilterProps) {
     <div className="flex justify-center">
       <div className="grid w-full max-w-4xl grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
         {allCategories.map((category, index) => {
-          const categoryNames = category.names as Record<Locale, string>;
+          const categoryNames = category.names as Record<string, string>;
           const categoryName =
-            categoryNames[locale] || categoryNames.en || category.slug;
+            categoryNames.tr || categoryNames.en || category.slug;
           const isActive = selectedCategory === category.slug;
 
           return (

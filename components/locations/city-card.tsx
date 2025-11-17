@@ -1,23 +1,20 @@
 'use client';
 
 import Link from 'next/link';
-import { useLocale } from 'next-intl';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { Location } from '@/lib/api/locations';
-import { Locale } from '@/i18n/config';
 
 interface CityCardProps {
   city: Location & { placeCount?: number };
 }
 
 export function CityCard({ city }: CityCardProps) {
-  const locale = useLocale() as Locale;
   const cityNames = city.names as any;
-  const cityName = cityNames?.[locale] || cityNames?.en || city.slug;
+  const cityName = cityNames?.tr || cityNames?.en || city.slug;
 
   return (
     <Link
-      href={`/${locale}/turkey/${city.slug}`}
+      href={`/turkey/${city.slug}`}
       className="group relative overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-neutral-800 dark:bg-neutral-900"
     >
       {/* Animated gradient background */}
@@ -46,12 +43,12 @@ export function CityCard({ city }: CityCardProps) {
 
         {city.has_districts && (
           <p className="mb-3 text-sm text-neutral-600 dark:text-neutral-400">
-            Browse by districts
+            İlçelere göre gözat
           </p>
         )}
 
         <div className="flex items-center gap-2 text-sm font-medium text-orange-600 transition-all group-hover:gap-3 dark:text-orange-400">
-          <span>Explore</span>
+          <span>Keşfet</span>
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
         </div>
       </div>

@@ -14,13 +14,11 @@ import {
 import { LoginDialog } from './login-dialog';
 import { SignupDialog } from './signup-dialog';
 import { ResetPasswordDialog } from './reset-password-dialog';
-import { User, LogOut, Settings, BookMarked, Star } from 'lucide-react';
+import { User, LogOut, BookMarked, Star, Shield } from 'lucide-react';
 import Link from 'next/link';
-import { useLocale } from 'next-intl';
 
 export function AuthButton() {
   const { user, profile, signOut, loading } = useAuth();
-  const locale = useLocale();
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [showReset, setShowReset] = useState(false);
@@ -112,30 +110,23 @@ export function AuthButton() {
         <DropdownMenuSeparator />
 
         <DropdownMenuItem asChild>
-          <Link href={`/${locale}/profile/${profile?.username}`}>
+          <Link href={`/profile/${profile?.username}`}>
             <User className="mr-2 h-4 w-4" />
-            <span>Profile</span>
+            <span>Profil</span>
           </Link>
         </DropdownMenuItem>
 
         <DropdownMenuItem asChild>
-          <Link href={`/${locale}/my-collections`}>
+          <Link href="/my-collections">
             <BookMarked className="mr-2 h-4 w-4" />
-            <span>My Collections</span>
+            <span>Koleksiyonlarım</span>
           </Link>
         </DropdownMenuItem>
 
         <DropdownMenuItem asChild>
-          <Link href={`/${locale}/favorites`}>
+          <Link href="/favorites">
             <Star className="mr-2 h-4 w-4" />
-            <span>Favorites</span>
-          </Link>
-        </DropdownMenuItem>
-
-        <DropdownMenuItem asChild>
-          <Link href={`/${locale}/settings`}>
-            <Settings className="mr-2 h-4 w-4" />
-            <span>Settings</span>
+            <span>Favorilerim</span>
           </Link>
         </DropdownMenuItem>
 
@@ -143,9 +134,9 @@ export function AuthButton() {
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href={`/${locale}/admin`}>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Admin Dashboard</span>
+              <Link href="/admin">
+                <Shield className="mr-2 h-4 w-4" />
+                <span>Admin Paneli</span>
               </Link>
             </DropdownMenuItem>
           </>

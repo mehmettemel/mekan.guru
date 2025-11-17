@@ -14,7 +14,6 @@ interface SortablePlaceItemProps {
   index: number;
   isOwner: boolean;
   onRemove: () => void;
-  locale: string;
 }
 
 export function SortablePlaceItem({
@@ -24,8 +23,8 @@ export function SortablePlaceItem({
   index,
   isOwner,
   onRemove,
-  locale,
 }: SortablePlaceItemProps) {
+  const locale = 'tr'; // Turkish as primary language
   const {
     attributes,
     listeners,

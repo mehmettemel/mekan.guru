@@ -3,15 +3,13 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThumbsUp, ThumbsDown, Plus, Minus } from 'lucide-react';
-import type { Locale } from '@/i18n/config';
 
 interface CompactPlaceCardProps {
   place: any;
-  locale: Locale;
   rank?: number;
 }
 
-export function CompactPlaceCard({ place, locale, rank }: CompactPlaceCardProps) {
+export function CompactPlaceCard({ place, rank }: CompactPlaceCardProps) {
   const [voteState, setVoteState] = useState<'up' | 'down' | null>(null);
   const [showAnimation, setShowAnimation] = useState(false);
 
@@ -22,8 +20,8 @@ export function CompactPlaceCard({ place, locale, rank }: CompactPlaceCardProps)
     // TODO: Implement actual voting logic
   };
 
-  const placeName = place.names?.[locale] || place.names?.en || place.slug;
-  const categoryName = place.category?.names?.[locale] || place.category?.names?.en || '';
+  const placeName = place.names?.tr || place.names?.en || place.slug;
+  const categoryName = place.category?.names?.tr || place.category?.names?.en || '';
 
   return (
     <div className="group relative flex items-center gap-3 overflow-hidden rounded-2xl border-2 border-transparent bg-gradient-to-br from-orange-100 via-yellow-50 to-orange-100 p-0.5 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg dark:from-orange-900/20 dark:via-orange-800/10 dark:to-orange-900/20">

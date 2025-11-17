@@ -26,11 +26,16 @@ Tailwind CSS 4.x     - Utility-first CSS framework
 
 ### Key Libraries
 ```
-next-intl 4.5.2             - Internationalization
 @tanstack/react-query 5.90  - Data fetching & caching
 zustand 5.0.8               - State management
 shadcn/ui                   - Component library
 lucide-react                - Icon library
+@dnd-kit/core               - Drag and drop functionality
+@dnd-kit/sortable           - Sortable drag and drop
+framer-motion               - Animations
+next-themes                 - Dark mode support
+react-hook-form             - Form management
+zod                         - Schema validation
 ```
 
 ---
@@ -48,19 +53,27 @@ We use Next.js 16's App Router architecture, which provides:
 #### File Structure
 ```
 app/
-├── [locale]/              # Dynamic locale parameter
-│   ├── layout.tsx         # Root layout (server component)
-│   ├── page.tsx           # Home page (server component)
-│   ├── admin/             # Admin dashboard
-│   │   ├── layout.tsx     # Admin layout with sidebar
-│   │   ├── page.tsx       # Dashboard overview
-│   │   ├── places/        # Places management
-│   │   ├── locations/     # Locations management
-│   │   └── categories/    # Categories management
-│   └── turkey/
-│       └── [city]/        # Dynamic city pages
-│           └── [district]/ # Dynamic district pages
-└── globals.css            # Global styles
+├── layout.tsx              # Root layout (providers, fonts)
+├── page.tsx                # Home page (server component)
+├── admin/                  # Admin dashboard (client components)
+│   ├── layout.tsx          # Admin layout with sidebar
+│   ├── page.tsx            # Dashboard overview
+│   ├── places/             # Places management
+│   ├── locations/          # Locations management
+│   ├── categories/         # Categories management
+│   └── collections/        # Collections management
+├── collections/            # Public collections
+│   ├── page.tsx           # Browse all collections
+│   └── [slug]/            # Collection detail page
+├── my-collections/        # User collections (protected)
+│   └── page.tsx           # User's collections dashboard
+├── favorites/              # User favorites (protected)
+│   └── page.tsx           # Voted collections
+├── profile/                # User profiles
+│   └── [username]/        # Individual profile page
+├── turkey/                 # Location pages
+│   └── [city]/            # City pages
+└── globals.css             # Global styles
 ```
 
 ### Server vs Client Components
@@ -73,12 +86,11 @@ app/
 ```typescript
 // Server Component Example
 export default async function HomePage() {
-  const t = await getTranslations('home'); // Server-side i18n
   const cities = await getCitiesByCountry('turkey'); // Direct DB query
 
   return (
     <div>
-      <h1>{t('hero.title')}</h1>
+      <h1>Otantik Yerel Lezzetleri Keşfet</h1>
       {cities.map(city => <CityCard key={city.id} city={city} />)}
     </div>
   );
@@ -155,7 +167,7 @@ Supabase provides a complete backend solution:
 - **Real-time Subscriptions**: Live data updates
 - **Edge Functions**: Serverless functions
 - **Storage**: File uploads and management
-- **Authentication**: Built-in auth system (planned for Phase 2)
+- **Authentication**: Fully implemented with Supabase Auth (email/password, email verification, password reset)
 
 ### Database Architecture
 
@@ -381,98 +393,29 @@ USING (
 
 ---
 
-## Internationalization (i18n)
+## Multi-Language Content Support
 
-### next-intl Configuration
+### Database-Level Internationalization
 
-**Supported Locales:**
-- `en` - English (primary)
-- `tr` - Turkish
+The platform stores all user-facing content in multiple languages at the database level using JSONB fields. While the UI is currently in Turkish, the data structure supports full internationalization.
 
 ### Implementation
 
-**Config** (`i18n/config.ts`):
+**Content Storage Pattern:**
+All content tables use JSONB fields for multi-language support:
+
+```sql
+-- Example: places table
+names JSONB NOT NULL,        -- {"en": "Karaköy Lokantası", "tr": "Karaköy Lokantası"}
+descriptions JSONB NOT NULL  -- {"en": "Traditional...", "tr": "Geleneksel..."}
+```
+
+**Accessing Multi-Language Content:**
 ```typescript
-export const locales = ['en', 'tr'] as const;
-export type Locale = (typeof locales)[number];
-export const defaultLocale: Locale = 'en';
-```
-
-**Proxy** (`proxy.ts`):
-```typescript
-import createMiddleware from 'next-intl/middleware';
-import { locales, defaultLocale } from './i18n/config';
-
-const intlMiddleware = createMiddleware({
-  locales,
-  defaultLocale,
-  localePrefix: 'as-needed', // Don't show /en in URL
-});
-
-export async function proxy(request: NextRequest) {
-  // Handle i18n
-  const response = intlMiddleware(request);
-
-  // Also handle Supabase session refresh
-  // ... Supabase middleware code
-
-  return response;
-}
-```
-
-**Translation Files** (`messages/`):
-```
-messages/
-├── en.json
-└── tr.json
-```
-
-Example (`messages/en.json`):
-```json
-{
-  "home": {
-    "hero": {
-      "title": "Discover Authentic Local Flavors",
-      "subtitle": "Find the best restaurants, cafes, and hidden gems...",
-      "cta": "Explore Places"
-    },
-    "popularCities": "Popular Cities"
-  }
-}
-```
-
-### Usage Patterns
-
-**Server Components:**
-```typescript
-import { getTranslations } from 'next-intl/server';
-
-export default async function Page() {
-  const t = await getTranslations('home');
-  return <h1>{t('hero.title')}</h1>;
-}
-```
-
-**Client Components:**
-```typescript
-'use client';
-import { useTranslations } from 'next-intl';
-
-export function Component() {
-  const t = useTranslations('home');
-  return <h1>{t('hero.title')}</h1>;
-}
-```
-
-**Locale Detection:**
-```typescript
-'use client';
-import { useLocale } from 'next-intl';
-
-export function Component() {
-  const locale = useLocale(); // 'en' | 'tr'
-  return <div>Current locale: {locale}</div>;
-}
+// In components
+const locale = 'tr'; // Currently hardcoded, can be dynamic in future
+const names = place.names as { en: string; tr: string };
+const placeName = names[locale] || names.en; // Fallback to English
 ```
 
 ### Multi-Language Content in Database
@@ -495,9 +438,10 @@ All user-facing content stored as JSONB:
 
 **Accessing in components:**
 ```typescript
-const locale = useLocale();
-const names = place.names as Record<Locale, string>;
-const placeName = names[locale] || names.en;
+// Currently using Turkish as default, but structure supports future i18n
+const locale = 'tr'; // Can be made dynamic in future
+const names = place.names as { en: string; tr: string };
+const placeName = names[locale] || names.en; // Fallback to English
 ```
 
 ---
@@ -573,28 +517,49 @@ function PlacesList() {
 }
 ```
 
-### Zustand (Future State)
+### Authentication Context
 
-Lightweight state management for client-side state:
+Custom React context for authentication state management:
 
+**Auth Context** (`lib/contexts/auth-context.tsx`):
 ```typescript
-// store/auth-store.ts
-import { create } from 'zustand';
+'use client';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { createClient } from '@/lib/supabase/client';
 
-interface AuthState {
-  user: User | null;
-  setUser: (user: User | null) => void;
-  isAuthenticated: boolean;
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const supabase = createClient();
+
+  // Sign up, sign in, sign out functions
+  // Profile fetching and updates
+  // Session management
+
+  return (
+    <AuthContext.Provider value={{ user, profile, signUp, signIn, signOut, ... }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  isAuthenticated: false,
-  setUser: (user) => set({
-    user,
-    isAuthenticated: !!user
-  }),
-}));
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
+  return context;
+}
+```
+
+**Usage:**
+```typescript
+'use client';
+import { useAuth } from '@/lib/contexts/auth-context';
+
+export function Component() {
+  const { user, profile, signOut } = useAuth();
+  // ...
+}
 ```
 
 ---
@@ -805,20 +770,27 @@ npm run seed
 ```
 local-flavours/
 ├── app/
-│   ├── [locale]/                   # Locale-based routing
-│   │   ├── layout.tsx              # Root layout (providers, fonts)
-│   │   ├── page.tsx                # Home page
-│   │   ├── admin/                  # Admin dashboard (client components)
-│   │   │   ├── layout.tsx          # Admin layout with sidebar
-│   │   │   ├── page.tsx            # Dashboard overview
-│   │   │   ├── places/             # Places CRUD
-│   │   │   ├── locations/          # Locations CRUD
-│   │   │   ├── categories/         # Categories CRUD
-│   │   │   └── collections/        # Collections CRUD
-│   │   └── turkey/
-│   │       └── [city]/
-│   │           └── [district]/
-│   └── globals.css                 # Global styles & theme
+│   ├── layout.tsx                  # Root layout (providers, fonts)
+│   ├── page.tsx                    # Home page
+│   ├── admin/                      # Admin dashboard (client components)
+│   │   ├── layout.tsx              # Admin layout with sidebar
+│   │   ├── page.tsx                # Dashboard overview
+│   │   ├── places/                 # Places CRUD
+│   │   ├── locations/              # Locations CRUD
+│   │   ├── categories/             # Categories CRUD
+│   │   └── collections/            # Collections CRUD
+│   ├── collections/                # Public collections
+│   │   ├── page.tsx               # Browse all collections
+│   │   └── [slug]/                # Collection detail page
+│   ├── my-collections/             # User collections (protected)
+│   │   └── page.tsx               # User's collections dashboard
+│   ├── favorites/                  # User favorites (protected)
+│   │   └── page.tsx               # Voted collections
+│   ├── profile/                     # User profiles
+│   │   └── [username]/            # Individual profile page
+│   ├── turkey/                      # Location pages
+│   │   └── [city]/                 # City pages
+│   └── globals.css                  # Global styles & theme
 │
 ├── components/
 │   ├── ui/                         # shadcn/ui components
@@ -837,29 +809,34 @@ local-flavours/
 │   │   ├── theme-provider.tsx      # Dark mode provider
 │   │   └── query-provider.tsx      # React Query provider
 │   ├── theme-toggle.tsx            # Dark mode toggle
-│   └── language-switcher.tsx       # Language selector
+│   ├── collections/                # Collection components
+│   │   ├── collection-card.tsx     # Collection display card
+│   │   ├── collection-dialog.tsx   # Create/Edit dialog
+│   │   ├── collection-detail-client.tsx # Detail page with drag-drop
+│   │   ├── sortable-place-item.tsx # Draggable place card
+│   │   └── add-place-dialog.tsx    # Search and add places
+│   └── auth/                       # Authentication components
+│       ├── auth-button.tsx         # User menu with auth
+│       ├── login-dialog.tsx        # Login modal
+│       ├── signup-dialog.tsx       # Signup modal
+│       └── reset-password-dialog.tsx # Password reset
 │
 ├── lib/
 │   ├── api/                        # API functions (server-side only)
 │   │   ├── locations.ts
 │   │   ├── places.ts
-│   │   └── collections.ts          # Collection CRUD operations
+│   │   ├── collections.ts          # Collection CRUD operations
+│   │   └── auth.ts                 # Authentication helpers
+│   ├── contexts/                   # React contexts
+│   │   └── auth-context.tsx        # Authentication context
 │   ├── supabase/                   # Supabase clients
 │   │   ├── client.ts               # Browser client
 │   │   ├── server.ts               # Server client
-│   │   └── middleware.ts           # Middleware utilities
+│   │   └── middleware.ts          # Middleware utilities
 │   └── utils.ts                    # Helper functions (cn, etc.)
 │
 ├── types/
 │   └── database.ts                 # Generated Supabase types
-│
-├── i18n/
-│   ├── config.ts                   # i18n configuration
-│   └── request.ts                  # i18n request handler
-│
-├── messages/                       # Translation files
-│   ├── en.json
-│   └── tr.json
 │
 ├── supabase/
 │   └── migrations/
@@ -877,7 +854,7 @@ local-flavours/
 ├── .env.local                      # Environment variables (gitignored)
 ├── .env.example                    # Example env file
 ├── components.json                 # shadcn/ui config
-├── proxy.ts                        # Next.js proxy (middleware)
+├── middleware.ts                   # Next.js middleware (auth & protected routes)
 ├── next.config.ts                  # Next.js configuration
 ├── tailwind.config.ts              # Tailwind CSS config
 ├── tsconfig.json                   # TypeScript config
@@ -935,6 +912,18 @@ local-flavours/
 
 ---
 
-**Tech Stack Version:** 1.0.0
-**Last Updated:** 2025-11-13
+**Tech Stack Version:** 2.0.0
+**Last Updated:** 2025-01-XX
 **Maintained By:** LocalFlavors Team
+
+## Recent Updates
+
+### v2.0.0 (Current)
+- ✅ Removed next-intl (simplified routing, no locale prefix)
+- ✅ Full authentication system implemented (Supabase Auth)
+- ✅ User profiles with following system
+- ✅ Collections CRUD fully functional (user-facing)
+- ✅ Favorites page for voted collections
+- ✅ Drag & drop place reordering in collections
+- ✅ Protected routes with middleware
+- ✅ Role-based access control (user/moderator/admin)

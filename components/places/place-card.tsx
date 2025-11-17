@@ -3,29 +3,27 @@
 import { useState } from 'react';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
 import { Place } from '@/lib/api/places';
-import { Locale } from '@/i18n/config';
 
 interface PlaceCardProps {
   place: Place & {
     category?: any;
     location?: any;
   };
-  locale: Locale;
   rank?: number;
 }
 
-export function PlaceCard({ place, locale, rank }: PlaceCardProps) {
+export function PlaceCard({ place, rank }: PlaceCardProps) {
   const [voteState, setVoteState] = useState<'up' | 'down' | null>(null);
 
-  const names = place.names as Record<Locale, string>;
-  const descriptions = place.descriptions as Record<Locale, string>;
+  const names = place.names as Record<string, string>;
+  const descriptions = place.descriptions as Record<string, string>;
 
-  const placeName = names[locale] || names.en || place.slug;
-  const placeDescription = descriptions[locale] || descriptions.en || '';
+  const placeName = names.tr || names.en || place.slug;
+  const placeDescription = descriptions.tr || descriptions.en || '';
 
   // Get category name
-  const categoryNames = place.category?.names as Record<Locale, string>;
-  const categoryName = categoryNames?.[locale] || categoryNames?.en || '';
+  const categoryNames = place.category?.names as Record<string, string>;
+  const categoryName = categoryNames?.tr || categoryNames?.en || '';
 
   const handleVote = (type: 'up' | 'down') => {
     setVoteState(voteState === type ? null : type);

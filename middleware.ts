@@ -1,13 +1,5 @@
-import createMiddleware from 'next-intl/middleware';
 import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
-import { locales, defaultLocale } from './i18n/config';
-
-const intlMiddleware = createMiddleware({
-  locales,
-  defaultLocale,
-  localePrefix: 'as-needed',
-});
 
 // Protected routes that require authentication
 const protectedRoutes = [
@@ -20,11 +12,12 @@ const protectedRoutes = [
 // Admin-only routes
 const adminRoutes = ['/admin'];
 
-export async function proxy(request: NextRequest) {
+export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Handle internationalization first
-  let response = intlMiddleware(request);
+  let response = NextResponse.next({
+    request,
+  });
 
   // Handle Supabase session
   const supabase = createServerClient(
@@ -87,15 +80,7 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Enable a redirect to a matching locale at the root
-    '/',
-
-    // Set a cookie to remember the previous locale for
-    // all requests that have a locale prefix
-    '/(tr|en)/:path*',
-
-    // Enable redirects that add missing locales
-    // (e.g. `/pathnames` -> `/en/pathnames`)
-    '/((?!_next|_vercel|.*\\..*).*)',
+    // Match all paths except static files and API routes
+    '/((?!_next|_vercel|api|.*\\..*).*)',
   ],
 };

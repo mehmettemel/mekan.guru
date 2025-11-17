@@ -5,7 +5,6 @@ import { CollectionDetailClient } from '@/components/collections/collection-deta
 interface PageProps {
   params: Promise<{
     slug: string;
-    locale: string;
   }>;
 }
 

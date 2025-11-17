@@ -4,18 +4,16 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { CompactPlaceCard } from '@/components/places/compact-place-card';
-import type { Locale } from '@/i18n/config';
 
 interface AnimatedCitySectionProps {
   city: any;
   places: any[];
-  locale: Locale;
   index: number;
 }
 
-export function AnimatedCitySection({ city, places, locale, index }: AnimatedCitySectionProps) {
-  const cityNames = city.names as Record<Locale, string>;
-  const cityName = cityNames[locale] || cityNames.en || city.slug;
+export function AnimatedCitySection({ city, places, index }: AnimatedCitySectionProps) {
+  const cityNames = city.names as Record<string, string>;
+  const cityName = cityNames.tr || cityNames.en || city.slug;
 
   // Container animation
   const containerVariants = {
@@ -65,14 +63,14 @@ export function AnimatedCitySection({ city, places, locale, index }: AnimatedCit
             {cityName}
           </h3>
           <p className="mt-0.5 text-xs text-neutral-600 dark:text-neutral-400">
-            {places.length} {places.length === 1 ? 'place' : 'places'}
+            {places.length} {places.length === 1 ? 'mekan' : 'mekan'}
           </p>
         </div>
         <Link
-          href={`/${locale}/turkey/${city.slug}`}
+          href={`/turkey/${city.slug}`}
           className="group flex items-center gap-1.5 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all hover:scale-105 hover:shadow-lg dark:from-orange-600 dark:to-orange-700"
         >
-          <span>View All</span>
+          <span>Tümünü Gör</span>
           <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
         </Link>
       </div>
@@ -85,7 +83,7 @@ export function AnimatedCitySection({ city, places, locale, index }: AnimatedCit
               key={place.id}
               variants={cardVariants}
             >
-              <CompactPlaceCard place={place} locale={locale} rank={placeIndex + 1} />
+              <CompactPlaceCard place={place} rank={placeIndex + 1} />
             </motion.div>
           ))
         ) : (
@@ -94,7 +92,7 @@ export function AnimatedCitySection({ city, places, locale, index }: AnimatedCit
             className="rounded-2xl border border-neutral-200 bg-neutral-50 p-8 text-center dark:border-neutral-800 dark:bg-neutral-800/50"
           >
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
-              No places yet in {cityName}
+              {cityName} için henüz mekan yok
             </p>
           </motion.div>
         )}

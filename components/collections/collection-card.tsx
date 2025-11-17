@@ -23,9 +23,10 @@ interface CollectionCardProps {
   collection: Collection;
   onEdit?: () => void;
   onDelete?: (id: string) => void;
+  showActions?: boolean;
 }
 
-export function CollectionCard({ collection, onEdit, onDelete }: CollectionCardProps) {
+export function CollectionCard({ collection, onEdit, onDelete, showActions = true }: CollectionCardProps) {
   const locale = 'tr'; // Turkish as primary language
 
   return (
@@ -76,37 +77,42 @@ export function CollectionCard({ collection, onEdit, onDelete }: CollectionCardP
         </div>
       </CardContent>
 
-      <CardFooter className="flex gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-1"
-          onClick={onEdit}
-        >
-          <Edit className="mr-2 h-3.5 w-3.5" />
-          Düzenle
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          asChild
-        >
-          <Link href={`/collections/${collection.slug}`}>
-            <ExternalLink className="mr-2 h-3.5 w-3.5" />
-            Görüntüle
-          </Link>
-        </Button>
-        {onDelete && (
+      {showActions && (
+        <CardFooter className="flex gap-2">
+          {onEdit && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={onEdit}
+            >
+              <Edit className="mr-2 h-3.5 w-3.5" />
+              Düzenle
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onDelete(collection.id)}
-            className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950"
+            className={onEdit ? '' : 'flex-1'}
+            asChild
           >
-            <Trash2 className="h-3.5 w-3.5" />
+            <Link href={`/collections/${collection.slug}`}>
+              <ExternalLink className="mr-2 h-3.5 w-3.5" />
+              Görüntüle
+            </Link>
           </Button>
-        )}
-      </CardFooter>
+          {onDelete && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onDelete(collection.id)}
+              className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          )}
+        </CardFooter>
+      )}
     </Card>
   );
 }

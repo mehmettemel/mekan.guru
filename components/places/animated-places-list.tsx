@@ -3,15 +3,13 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { PlaceCard } from './place-card';
 import { Sparkles } from 'lucide-react';
-import type { Locale } from '@/i18n/config';
 
 interface AnimatedPlacesListProps {
   places: any[];
-  locale: Locale;
   categoryFilter?: string;
 }
 
-export function AnimatedPlacesList({ places, locale, categoryFilter }: AnimatedPlacesListProps) {
+export function AnimatedPlacesList({ places, categoryFilter }: AnimatedPlacesListProps) {
   // Container variants for stagger effect
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -75,7 +73,7 @@ export function AnimatedPlacesList({ places, locale, categoryFilter }: AnimatedP
               variants={itemVariants}
               layout
             >
-              <PlaceCard place={place} locale={locale} rank={index + 1} />
+              <PlaceCard place={place} rank={index + 1} />
             </motion.div>
           ))}
         </motion.div>
@@ -103,7 +101,7 @@ export function AnimatedPlacesList({ places, locale, categoryFilter }: AnimatedP
             <Sparkles className="h-8 w-8 text-orange-500 dark:text-orange-400" />
           </motion.div>
           <p className="text-lg font-medium text-neutral-600 dark:text-neutral-400">
-            No places found in this category
+            Bu kategoride mekan bulunamadı
           </p>
         </motion.div>
       )}

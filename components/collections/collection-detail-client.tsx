@@ -197,7 +197,6 @@ export function CollectionDetailClient({ collection, initialPlaces }: Collection
                   index={index}
                   isOwner={isOwner}
                   onRemove={() => handleRemovePlace(collectionPlace.place_id)}
-                  locale={locale}
                 />
               ))}
             </div>

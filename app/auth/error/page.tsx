@@ -2,13 +2,10 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 export default async function AuthErrorPage({
-  params,
   searchParams,
 }: {
-  params: Promise<{ locale: string }>;
   searchParams: Promise<{ message?: string }>;
 }) {
-  const { locale } = await params;
   const { message } = await searchParams;
 
   return (
@@ -31,19 +28,19 @@ export default async function AuthErrorPage({
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-50">
-            Authentication Error
+            Kimlik Doğrulama Hatası
           </h1>
           <p className="text-neutral-600 dark:text-neutral-400">
-            {message || 'An error occurred during authentication'}
+            {message || 'Kimlik doğrulama sırasında bir hata oluştu'}
           </p>
         </div>
 
         <div className="flex gap-3">
           <Button asChild className="flex-1">
-            <Link href={`/${locale}`}>Return Home</Link>
+            <Link href="/">Ana Sayfaya Dön</Link>
           </Button>
           <Button asChild variant="outline" className="flex-1">
-            <Link href={`/${locale}?auth=login`}>Try Again</Link>
+            <Link href="/?auth=login">Tekrar Dene</Link>
           </Button>
         </div>
       </div>

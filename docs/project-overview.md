@@ -54,14 +54,14 @@ This hierarchical structure allows users to browse from broad to specific locati
 - **Trust Score**: Collections and places earn trust scores based on vote patterns
 - **Top 20 Calculation**: Aggregated from all collection votes
 
-### 4. **Multi-Language Support**
+### 4. **Multi-Language Content Support**
 
-LocalFlavors is built with internationalization at its core:
+LocalFlavors stores all content in multiple languages:
 
 - **Turkish (TR)**: Primary language for Turkish users
 - **English (EN)**: International audience
 
-All content (place names, descriptions, categories, locations, collection names) is stored in multiple languages, ensuring a native experience for all users.
+All content (place names, descriptions, categories, locations, collection names) is stored as JSONB with both `en` and `tr` fields, allowing the platform to display content in the user's preferred language. The UI is currently in Turkish, but the database structure supports full internationalization.
 
 ### 5. **Hierarchical Category-Based Discovery**
 
@@ -248,15 +248,19 @@ Each location has:
 ## URL Structure Examples
 
 ```
-/turkiye/adana                                    → Top 20 all categories in Adana
-/turkiye/adana/collections                        → Browse collections for Adana
-/turkiye/adana/yemek                              → Top 20 all food places in Adana
-/turkiye/adana/yemek/collections                  → Food-specific collections
-/turkiye/adana/yemek/pideci                       → Top 20 pide restaurants in Adana
-/turkiye/adana/yemek/kebapci/collections          → Kebab-specific collections
-/turkiye/istanbul/kadikoy                         → Top 20 all categories in Kadıköy
-/collection/mehmet-adana-kebap-rehberi           → Individual collection page
-/user/mehmet/collections                          → User's collection profile
+/                                                  → Home page with featured cities
+/turkey/istanbul                                   → Top places in Istanbul
+/turkey/istanbul/kadikoy                          → Top places in Kadıköy district
+/collections                                       → Browse all collections
+/collections/[slug]                                → Individual collection detail page
+/my-collections                                    → User's collections management (protected)
+/favorites                                         → User's voted collections (protected)
+/profile/[username]                                → User profile page
+/admin                                             → Admin dashboard (admin only)
+/admin/places                                      → Places management
+/admin/collections                                 → Collections management
+/admin/locations                                   → Locations management
+/admin/categories                                  → Categories management
 ```
 
 ## Future Roadmap
@@ -267,24 +271,28 @@ Each location has:
 - ✅ Location hierarchy system
 - ✅ Hierarchical category system (main + subcategories)
 - ✅ Collection database schema and tables
-- ✅ Collection creation and management system (Admin CRUD)
+- ✅ Collection creation and management system (User & Admin CRUD)
 - ✅ Collection-based voting mechanism (Database triggers)
 - ✅ Admin dashboard with collection moderation
-- ✅ Multi-language support
-- 🔄 User authentication (Supabase Auth)
-- 🔄 Basic user profiles
-- 🔄 Top 20 calculation from aggregated collection votes
-- 🔄 Public collection browsing interface
+- ✅ Multi-language content support (database level)
+- ✅ User authentication (Supabase Auth) - Email/password, email verification, password reset
+- ✅ User profiles with stats (followers, following, collections, reputation)
+- ✅ User following system
+- ✅ Favorites page (upvoted/downvoted collections)
+- ✅ Public collection browsing interface
+- ✅ Collection detail pages with drag & drop place ordering
+- ✅ Protected routes and role-based access control
+- 🔄 Top 20 calculation from aggregated collection votes (in progress)
 
 ### Phase 2 (Upcoming)
 
-- 📋 Collection discovery and browsing
-- 📋 User following system
-- 📋 Curator reputation system
+- 📋 Collection voting UI (upvote/downvote buttons)
 - 📋 Collection search and filtering
+- 📋 Advanced curator reputation system
 - 📋 Place suggestions by users
 - 📋 Collection sharing on social media
 - 📋 Email notifications for collection votes
+- 📋 Collection comments and discussions
 
 ### Phase 3 (Future - Enhanced Features)
 
@@ -341,9 +349,9 @@ Trust is built through both individual expertise and collective wisdom. The plat
 
 Built with modern technologies and best practices to ensure the platform can grow from Turkey to global coverage without major rewrites. The flexible collection system can accommodate any location or category.
 
-### Multi-Language First
+### Multi-Language Content Support
 
-Internationalization isn't an afterthought—it's baked into every aspect of the platform, from data models to UI components to collection titles.
+All content in the database is stored with both Turkish and English versions, allowing for future full internationalization. The current UI is in Turkish, but the data structure supports seamless language switching.
 
 ### Performance-Focused
 
@@ -393,7 +401,7 @@ Server-side rendering, edge caching, and optimized queries ensure fast page load
 
 ## Technical Highlights
 
-- **Modern Stack**: Next.js 15, React 19, TypeScript
+- **Modern Stack**: Next.js 16, React 19, TypeScript
 - **Real-time Data**: Supabase with PostgreSQL
 - **Edge-Ready**: Built for deployment on Vercel Edge Network
 - **Type-Safe**: Full TypeScript coverage with generated database types
@@ -401,7 +409,10 @@ Server-side rendering, edge caching, and optimized queries ensure fast page load
 - **Vote Aggregation**: Efficient algorithms for calculating Top 20 from collection votes
 - **SEO-Optimized**: Server-side rendering with dynamic metadata for each location/category/collection
 - **Component Library**: shadcn/ui with Tailwind CSS for consistent, beautiful UI
-- **Authentication**: Supabase Auth with social login support
+- **Authentication**: Supabase Auth with email/password, email verification, and password reset
+- **State Management**: React Query for server state, Zustand for client state
+- **Drag & Drop**: @dnd-kit for collection place reordering
+- **Dark Mode**: System-aware theme switching with next-themes
 
 ---
 
