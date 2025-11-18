@@ -28,26 +28,43 @@ open http://localhost:3000
 
 | Document | Purpose |
 |----------|---------|
-| **[QUICK_START.md](./QUICK_START.md)** | 5-minute setup guide |
-| **[MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md)** | Database setup instructions |
-| **[AUTH_SETUP.md](./AUTH_SETUP.md)** | Authentication system details |
-| **[TESTING_GUIDE.md](./TESTING_GUIDE.md)** | Comprehensive testing scenarios |
-| **[docs/project-overview.md](./docs/project-overview.md)** | Full project documentation |
-| **[docs/tech-stack.md](./docs/tech-stack.md)** | Technical architecture |
+| **[docs/QUICK-START.md](./docs/QUICK-START.md)** | 🚀 Quick setup & usage guide |
+| **[docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)** | 🏗️ Complete system architecture |
+| **[docs/project-overview.md](./docs/project-overview.md)** | 📖 Project overview & features |
+| **[docs/tech-stack.md](./docs/tech-stack.md)** | 🛠️ Technology stack details |
 
 ## ✨ Features
 
-### ✅ Completed
-- **Authentication System**
-  - Email/password signup & signin
-  - Email verification
-  - Password reset
-  - Protected routes
-  - Role-based access (user/moderator/admin)
+### ✅ MVP Complete
+- **🏆 Leaderboard System**
+  - Top 20 places by city with live voting
+  - 🥇🥈🥉 Medal rankings for top 3
+  - 👍👎 Upvote/downvote buttons
+  - Weighted voting based on account age
+  - Smooth city transitions
+  - Category filtering with emojis
 
-- **User Features**
+- **📚 Collections System**
+  - User-curated lists of places
+  - Hierarchical categories (Main + Subcategories)
+  - Drag & drop place ordering
+  - Recommended items per place (e.g., "Adana Kebap", "Ayran")
+  - Search existing or create new places
+  - Smart duplicate detection
+  - Curator notes for each place
+
+- **🏪 Place Management**
+  - Auto-approved place creation (MVP)
+  - Duplicate warning system
+  - Minimal required fields (name + address)
+  - Multi-language support (Turkish/English)
+  - Vote score calculation
+
+- **🔐 Authentication**
+  - Email/password signup & signin
+  - Protected routes
   - User profiles
-  - Settings page
+  - Role-based access
   - Notification preferences
   - Account stats
 

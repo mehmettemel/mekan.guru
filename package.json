@@ -10,9 +10,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "seed": "tsx scripts/seed-supabase.ts",
-    "seed:istanbul": "tsx scripts/seed-istanbul.ts",
-    "seed:istanbul:real": "tsx scripts/seed-istanbul-real.ts",
-    "seed:categories": "tsx scripts/seed-categories.ts"
+    "seed:categories": "tsx scripts/seed-categories.ts",
+    "seed:demo": "tsx scripts/seed-demo-collections.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

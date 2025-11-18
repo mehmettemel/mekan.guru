@@ -4,13 +4,14 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { GripVertical, MapPin, Star, X } from 'lucide-react';
+import { GripVertical, MapPin, Star, X, Utensils } from 'lucide-react';
 import Link from 'next/link';
 
 interface SortablePlaceItemProps {
   id: string;
   place: any;
   curatorNote?: string;
+  recommendedItems?: string[];
   index: number;
   isOwner: boolean;
   onRemove: () => void;
@@ -20,6 +21,7 @@ export function SortablePlaceItem({
   id,
   place,
   curatorNote,
+  recommendedItems,
   index,
   isOwner,
   onRemove,
@@ -94,6 +96,24 @@ export function SortablePlaceItem({
               {curatorNote && (
                 <div className="mt-2 rounded-lg bg-neutral-50 p-2 text-sm italic text-neutral-700 dark:bg-neutral-900 dark:text-neutral-300">
                   "{curatorNote}"
+                </div>
+              )}
+              {recommendedItems && recommendedItems.length > 0 && (
+                <div className="mt-2 space-y-1">
+                  <div className="flex items-center gap-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-300">
+                    <Utensils className="h-3.5 w-3.5" />
+                    <span>Önerilen:</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {recommendedItems.map((item, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
               <div className="mt-2 flex items-center gap-2 text-sm">

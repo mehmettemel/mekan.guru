@@ -265,14 +265,14 @@ Each location has:
 
 ## Future Roadmap
 
-### Phase 1 (Current - MVP)
+### Phase 1 (Current - MVP) ✅ COMPLETE
 
 - ✅ Core platform architecture
 - ✅ Location hierarchy system
 - ✅ Hierarchical category system (main + subcategories)
 - ✅ Collection database schema and tables
 - ✅ Collection creation and management system (User & Admin CRUD)
-- ✅ Collection-based voting mechanism (Database triggers)
+- ✅ Collection-based voting mechanism (Database triggers with automatic vote propagation)
 - ✅ Admin dashboard with collection moderation
 - ✅ Multi-language content support (database level)
 - ✅ User authentication (Supabase Auth) - Email/password, email verification, password reset
@@ -282,17 +282,22 @@ Each location has:
 - ✅ Public collection browsing interface
 - ✅ Collection detail pages with drag & drop place ordering
 - ✅ Protected routes and role-based access control
-- 🔄 Top 20 calculation from aggregated collection votes (in progress)
+- ✅ Top 20 calculation from aggregated collection votes (fully implemented)
+- ✅ Homepage leaderboard showing places ranked by collection votes
+- ✅ Recommended items system for places in collections
+- ✅ Duplicate detection when creating new places
+- ✅ Seed scripts for demo data (locations, categories, demo collections)
 
 ### Phase 2 (Upcoming)
 
-- 📋 Collection voting UI (upvote/downvote buttons)
+- 📋 Collection voting UI (upvote/downvote buttons on collection pages)
 - 📋 Collection search and filtering
 - 📋 Advanced curator reputation system
 - 📋 Place suggestions by users
 - 📋 Collection sharing on social media
 - 📋 Email notifications for collection votes
 - 📋 Collection comments and discussions
+- 📋 Place-level voting UI (currently votes propagate from collections)
 
 ### Phase 3 (Future - Enhanced Features)
 
@@ -401,18 +406,21 @@ Server-side rendering, edge caching, and optimized queries ensure fast page load
 
 ## Technical Highlights
 
-- **Modern Stack**: Next.js 16, React 19, TypeScript
+- **Modern Stack**: Next.js 16, React 19, TypeScript 5
+- **Node.js**: Requires Node.js 20+ for development
 - **Real-time Data**: Supabase with PostgreSQL
 - **Edge-Ready**: Built for deployment on Vercel Edge Network
 - **Type-Safe**: Full TypeScript coverage with generated database types
 - **Scalable Database**: PostgreSQL with RLS, triggers, and materialized paths for hierarchies
-- **Vote Aggregation**: Efficient algorithms for calculating Top 20 from collection votes
+- **Vote Aggregation**: Efficient database triggers automatically propagate collection votes to places
+- **Collection-Based Ranking**: Places are ranked by aggregated votes from all collections they appear in
 - **SEO-Optimized**: Server-side rendering with dynamic metadata for each location/category/collection
-- **Component Library**: shadcn/ui with Tailwind CSS for consistent, beautiful UI
+- **Component Library**: shadcn/ui with Tailwind CSS 4 for consistent, beautiful UI
 - **Authentication**: Supabase Auth with email/password, email verification, and password reset
-- **State Management**: React Query for server state, Zustand for client state
+- **State Management**: React Query (@tanstack/react-query) for server state, Zustand for client state
 - **Drag & Drop**: @dnd-kit for collection place reordering
 - **Dark Mode**: System-aware theme switching with next-themes
+- **Seed Scripts**: Comprehensive seeding for locations, categories, and demo collections
 
 ---
 

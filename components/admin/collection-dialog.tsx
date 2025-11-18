@@ -70,18 +70,39 @@ export function CollectionDialog({
     },
   });
 
-  // Fetch categories
+  // Fetch main categories
   const { data: categories } = useQuery({
     queryKey: ['admin-categories'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('categories')
         .select('*')
+        .is('parent_id', null)
         .order('display_order', { ascending: true });
       if (error) throw error;
       return data;
     },
   });
+
+  // Fetch subcategories based on selected category
+  const { data: subcategories } = useQuery({
+    queryKey: ['admin-subcategories', formData.categoryId],
+    queryFn: async () => {
+      if (!formData.categoryId) return [];
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('parent_id', formData.categoryId)
+        .order('display_order', { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!formData.categoryId,
+  });
+
+  // Get selected category slug
+  const selectedCategory = categories?.find((cat) => cat.id === formData.categoryId);
+  const selectedCategorySlug = selectedCategory?.slug || '';
 
   // Fetch users for creator selection
   const { data: users } = useQuery({
@@ -183,6 +204,13 @@ export function CollectionDialog({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate subcategory is selected for "Yemek" category
+    if (selectedCategorySlug === 'yemek' && !formData.subcategoryId) {
+      alert('Please select a food type subcategory for Yemek category');
+      return;
+    }
+
     saveMutation.mutate();
   };
 
@@ -315,9 +343,12 @@ export function CollectionDialog({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          {/* Subcategory - Show only if "Yemek" is selected and has subcategories */}
+          {selectedCategorySlug === 'yemek' && subcategories && subcategories.length > 0 && (
             <div>
-              <Label htmlFor="subcategoryId">Subcategory (Optional)</Label>
+              <Label htmlFor="subcategoryId">
+                Subcategory (Food Type) <span className="text-red-500">*</span>
+              </Label>
               <Select
                 value={formData.subcategoryId}
                 onValueChange={(value) =>
@@ -325,42 +356,41 @@ export function CollectionDialog({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select subcategory" />
+                  <SelectValue placeholder="Select food type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
-                  {categories?.map((category) => {
-                    const names = category.names as { en: string; tr: string };
+                  {subcategories?.map((subcategory) => {
+                    const names = subcategory.names as { en: string; tr: string };
                     return (
-                      <SelectItem key={category.id} value={category.id}>
-                        {names.en}
+                      <SelectItem key={subcategory.id} value={subcategory.id}>
+                        {subcategory.icon} {names.en}
                       </SelectItem>
                     );
                   })}
                 </SelectContent>
               </Select>
             </div>
+          )}
 
-            <div>
-              <Label htmlFor="creatorId">Creator</Label>
-              <Select
-                value={formData.creatorId}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, creatorId: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select creator" />
-                </SelectTrigger>
-                <SelectContent>
-                  {users?.map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.username}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div>
+            <Label htmlFor="creatorId">Creator</Label>
+            <Select
+              value={formData.creatorId}
+              onValueChange={(value) =>
+                setFormData({ ...formData, creatorId: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select creator" />
+              </SelectTrigger>
+              <SelectContent>
+                {users?.map((user) => (
+                  <SelectItem key={user.id} value={user.id}>
+                    {user.username}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

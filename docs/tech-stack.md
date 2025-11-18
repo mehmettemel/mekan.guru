@@ -18,8 +18,9 @@
 ### Core Technologies
 ```
 Next.js 16.0.2       - React framework with App Router
-React 19.0.0         - UI library
+React 19.2.0         - UI library
 TypeScript 5.x       - Type-safe development
+Node.js 20+          - Runtime environment (required)
 Supabase             - Backend-as-a-Service (PostgreSQL + Auth + Storage)
 Tailwind CSS 4.x     - Utility-first CSS framework
 ```
@@ -845,7 +846,9 @@ local-flavours/
 │       └── 003_collections_schema.sql # Collections system
 │
 ├── scripts/
-│   └── seed-supabase.ts            # Seeding script
+│   ├── seed-supabase.ts            # Seed locations, cities, districts, places
+│   ├── seed-categories.ts          # Seed hierarchical categories
+│   └── seed-demo-collections.ts    # Seed demo users, collections, votes
 │
 ├── docs/                           # Documentation
 │   ├── project-overview.md         # Project details
@@ -912,13 +915,23 @@ local-flavours/
 
 ---
 
-**Tech Stack Version:** 2.0.0
-**Last Updated:** 2025-01-XX
+**Tech Stack Version:** 2.1.0
+**Last Updated:** 2025-01-17
 **Maintained By:** LocalFlavors Team
 
 ## Recent Updates
 
-### v2.0.0 (Current)
+### v2.1.0 (Current)
+- ✅ Node.js 20+ requirement added
+- ✅ Collection-based voting system fully implemented
+- ✅ Automatic vote propagation from collections to places via database triggers
+- ✅ Homepage leaderboard displays places ranked by collection votes
+- ✅ Comprehensive seed scripts (locations, categories, demo collections)
+- ✅ Recommended items system for places in collections
+- ✅ Duplicate detection when creating new places
+- ✅ Idempotent seed scripts (can run multiple times safely)
+
+### v2.0.0
 - ✅ Removed next-intl (simplified routing, no locale prefix)
 - ✅ Full authentication system implemented (Supabase Auth)
 - ✅ User profiles with following system

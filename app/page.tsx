@@ -1,26 +1,21 @@
 import { getCitiesByCountry } from '@/lib/api/locations';
 import { getTopPlacesByCity } from '@/lib/api/places';
-import { AnimatedCitySection } from '@/components/locations/animated-city-section';
-import { Sparkles } from 'lucide-react';
+import { PlacesLeaderboard } from '@/components/leaderboard/places-leaderboard';
+import { Sparkles, TrendingUp } from 'lucide-react';
 
-export default async function HomePage() {
+interface HomePageProps {
+  searchParams: Promise<{ city?: string }>;
+}
+
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const params = await searchParams;
   const cities = await getCitiesByCountry('turkey');
 
-  // Featured cities (you can customize this list)
-  const featuredCitySlugs = ['istanbul', 'ankara', 'izmir'];
+  // Get selected city from query params or default to Istanbul
+  const selectedCitySlug = params.city || 'istanbul';
 
-  // Get top places for each featured city (8 places each)
-  const featuredCitiesWithPlaces = await Promise.all(
-    featuredCitySlugs.map(async (citySlug) => {
-      const city = cities?.find(c => c.slug === citySlug);
-      if (!city) return null;
-
-      const topPlaces = await getTopPlacesByCity(citySlug, 8);
-      return { city, places: topPlaces };
-    })
-  );
-
-  const validFeaturedCities = featuredCitiesWithPlaces.filter(Boolean);
+  // Get top 20 places for selected city
+  const topPlaces = await getTopPlacesByCity(selectedCitySlug, 20);
 
   return (
     <>
@@ -40,33 +35,40 @@ export default async function HomePage() {
             <p className="mx-auto max-w-xl text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
               Türkiye'deki en iyi yerel mekanları keşfedin ve paylaşın. Favorilerinize oy verin ve başkalarının restoranlar, kafeler ve barlarda otantik deneyimler bulmasına yardımcı olun.
             </p>
+
+            {/* Stats */}
+            <div className="mx-auto mt-6 flex max-w-md items-center justify-center gap-6 text-sm">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-orange-500" />
+                <span className="text-neutral-600 dark:text-neutral-400">
+                  <span className="font-semibold text-neutral-900 dark:text-neutral-50">
+                    {topPlaces?.length || 0}
+                  </span>{' '}
+                  Mekan
+                </span>
+              </div>
+              <div className="h-4 w-px bg-neutral-300 dark:bg-neutral-700" />
+              <div className="flex items-center gap-2">
+                <span className="text-neutral-600 dark:text-neutral-400">
+                  <span className="font-semibold text-neutral-900 dark:text-neutral-50">
+                    {cities?.length || 0}
+                  </span>{' '}
+                  Şehir
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Featured Cities with Top Places - Horizontal Grid */}
-      <section id="featured" className="bg-white py-16 dark:bg-neutral-900">
+      {/* Leaderboard Section */}
+      <section className="bg-neutral-50 py-16 dark:bg-neutral-950">
         <div className="container mx-auto px-4">
-          <div className="mb-12 text-center">
-            <h2 className="mb-2 text-3xl font-bold text-neutral-900 dark:text-neutral-50">
-              Öne Çıkan Şehirler
-            </h2>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400">
-              Popüler şehirlerdeki en iyi derecelendirilmiş mekanları keşfedin
-            </p>
-          </div>
-
-          {/* Cities Grid - Horizontal Layout, Responsive */}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {validFeaturedCities.map((cityData: any, cityIndex: number) => (
-              <AnimatedCitySection
-                key={cityData.city.id}
-                city={cityData.city}
-                places={cityData.places}
-                index={cityIndex}
-              />
-            ))}
-          </div>
+          <PlacesLeaderboard
+            initialPlaces={topPlaces || []}
+            cities={cities || []}
+            selectedCitySlug={selectedCitySlug}
+          />
         </div>
       </section>
     </>

@@ -13,7 +13,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Plus, Loader2, MapPin, FolderTree, Star } from 'lucide-react';
-import { CollectionDialog } from '@/components/collections/collection-dialog';
+import { EditCollectionModal } from '@/components/collections/edit-collection-modal';
 import { CollectionCard } from '@/components/collections/collection-card';
 
 interface Collection {
@@ -223,8 +223,8 @@ export default function MyCollectionsPage() {
           </div>
         )}
 
-        {/* Create/Edit Dialog */}
-        <CollectionDialog
+        {/* Create/Edit Modal */}
+        <EditCollectionModal
           open={dialogOpen}
           onOpenChange={(open) => {
             setDialogOpen(open);

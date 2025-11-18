@@ -44,13 +44,18 @@ export function CollectionDialog({
   const [loading, setLoading] = useState(false);
   const [locations, setLocations] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [subcategories, setSubcategories] = useState<any[]>([]);
 
   // Form state
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [locationId, setLocationId] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  const [subcategoryId, setSubcategoryId] = useState('');
   const [tags, setTags] = useState('');
+
+  // Track selected category slug
+  const [selectedCategorySlug, setSelectedCategorySlug] = useState('');
 
   // Load form data when editing
   useEffect(() => {
@@ -59,6 +64,7 @@ export function CollectionDialog({
       setDescription(collection.descriptions?.tr || '');
       setLocationId(collection.location_id || '');
       setCategoryId(collection.category_id || '');
+      setSubcategoryId(collection.subcategory_id || '');
       setTags(collection.tags?.join(', ') || '');
     }
   }, [collection]);
@@ -86,10 +92,44 @@ export function CollectionDialog({
       .from('categories')
       .select('id, slug, names')
       .is('parent_id', null)
-      .order('names->en');
+      .order('display_order');
 
     setCategories(data || []);
   };
+
+  // Fetch subcategories when category changes
+  const fetchSubcategories = async (parentId: string) => {
+    const { data } = await supabase
+      .from('categories')
+      .select('id, slug, names')
+      .eq('parent_id', parentId)
+      .order('display_order');
+
+    setSubcategories(data || []);
+  };
+
+  // When category changes, fetch subcategories and update slug
+  useEffect(() => {
+    if (categoryId) {
+      const selectedCategory = categories.find((cat) => cat.id === categoryId);
+      if (selectedCategory) {
+        setSelectedCategorySlug(selectedCategory.slug);
+
+        // If "Yemek" is selected, fetch subcategories
+        if (selectedCategory.slug === 'yemek') {
+          fetchSubcategories(categoryId);
+        } else {
+          // Clear subcategories for other categories
+          setSubcategories([]);
+          setSubcategoryId('');
+        }
+      }
+    } else {
+      setSelectedCategorySlug('');
+      setSubcategories([]);
+      setSubcategoryId('');
+    }
+  }, [categoryId, categories]);
 
   const generateSlug = (name: string) => {
     // Turkish character replacements
@@ -114,6 +154,12 @@ export function CollectionDialog({
       return;
     }
 
+    // Validate subcategory is selected for "Yemek" category
+    if (selectedCategorySlug === 'yemek' && !subcategoryId) {
+      alert('Yemek kategorisi için lütfen bir alt kategori seçin');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -127,6 +173,7 @@ export function CollectionDialog({
         creator_id: userId,
         location_id: locationId,
         category_id: categoryId,
+        subcategory_id: subcategoryId || null,
         tags: tags ? tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
         status: 'active',
       };
@@ -164,7 +211,10 @@ export function CollectionDialog({
     setDescription('');
     setLocationId('');
     setCategoryId('');
+    setSubcategoryId('');
     setTags('');
+    setSelectedCategorySlug('');
+    setSubcategories([]);
   };
 
   return (
@@ -248,6 +298,30 @@ export function CollectionDialog({
               </SelectContent>
             </Select>
           </div>
+
+          {/* Subcategory - Only show for "Yemek" category */}
+          {selectedCategorySlug === 'yemek' && (
+            <div className="space-y-2">
+              <Label htmlFor="subcategory">
+                Yemek Türü <span className="text-red-500">*</span>
+              </Label>
+              <Select value={subcategoryId} onValueChange={setSubcategoryId} disabled={loading}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Yemek türü seç" />
+                </SelectTrigger>
+                <SelectContent>
+                  {subcategories.map((subcategory) => (
+                    <SelectItem key={subcategory.id} value={subcategory.id}>
+                      {subcategory.icon} {subcategory.names.tr}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-neutral-500">
+                Bu koleksiyondaki mekanların türünü belirt
+              </p>
+            </div>
+          )}
 
           {/* Tags */}
           <div className="space-y-2">

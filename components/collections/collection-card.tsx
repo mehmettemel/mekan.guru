@@ -2,8 +2,7 @@
 
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Star, Edit, Trash2, ExternalLink } from 'lucide-react';
-import Link from 'next/link';
+import { MapPin, Star, Edit, Trash2 } from 'lucide-react';
 
 interface Collection {
   id: string;
@@ -38,14 +37,9 @@ export function CollectionCard({ collection, onEdit, onDelete, showActions = tru
       )}
 
       <CardHeader>
-        <Link
-          href={`/collections/${collection.slug}`}
-          className="group-hover:text-primary transition-colors"
-        >
-          <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">
-            {collection.names[locale as 'en' | 'tr']}
-          </h3>
-        </Link>
+        <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">
+          {collection.names[locale as 'en' | 'tr']}
+        </h3>
         <p className="mt-2 line-clamp-2 text-sm text-neutral-600 dark:text-neutral-400">
           {collection.descriptions[locale as 'en' | 'tr']}
         </p>
@@ -90,17 +84,6 @@ export function CollectionCard({ collection, onEdit, onDelete, showActions = tru
               Düzenle
             </Button>
           )}
-          <Button
-            variant="outline"
-            size="sm"
-            className={onEdit ? '' : 'flex-1'}
-            asChild
-          >
-            <Link href={`/collections/${collection.slug}`}>
-              <ExternalLink className="mr-2 h-3.5 w-3.5" />
-              Görüntüle
-            </Link>
-          </Button>
           {onDelete && (
             <Button
               variant="outline"

@@ -1,3 +1,36 @@
+// Polyfill for Node.js < 18
+if (typeof globalThis.Headers === 'undefined') {
+  globalThis.Headers = class Headers {
+    private headers: Map<string, string> = new Map();
+    constructor(init?: HeadersInit) {
+      if (init) {
+        if (Array.isArray(init)) {
+          init.forEach(([key, value]) => this.set(key, value));
+        } else if (init instanceof Headers) {
+          init.forEach((value, key) => this.set(key, value));
+        } else {
+          Object.entries(init).forEach(([key, value]) => this.set(key, value));
+        }
+      }
+    }
+    get(name: string) {
+      return this.headers.get(name.toLowerCase()) || null;
+    }
+    set(name: string, value: string) {
+      this.headers.set(name.toLowerCase(), value);
+    }
+    has(name: string) {
+      return this.headers.has(name.toLowerCase());
+    }
+    delete(name: string) {
+      this.headers.delete(name.toLowerCase());
+    }
+    forEach(callback: (value: string, key: string) => void) {
+      this.headers.forEach(callback);
+    }
+  } as any;
+}
+
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/types/database';
 import { config } from 'dotenv';
@@ -11,7 +44,10 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 if (!supabaseUrl || !supabaseServiceKey) {
   console.error('NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? 'Found' : 'Missing');
-  console.error('SUPABASE_SERVICE_ROLE_KEY:', supabaseServiceKey ? 'Found' : 'Missing');
+  console.error(
+    'SUPABASE_SERVICE_ROLE_KEY:',
+    supabaseServiceKey ? 'Found' : 'Missing'
+  );
   throw new Error('Missing Supabase environment variables');
 }
 
@@ -21,49 +57,82 @@ async function seedDatabase() {
   console.log('🌱 Starting database seeding...');
 
   try {
-    // 1. Insert Categories
+    // 1. Insert Categories (skip if exists)
     console.log('📦 Inserting categories...');
-    const { data: categories, error: categoriesError } = await supabase
-      .from('categories')
-      .insert([
-        {
-          slug: 'restaurants',
-          icon: 'utensils',
-          display_order: 1,
-        },
-        {
-          slug: 'cafes',
-          icon: 'coffee',
-          display_order: 2,
-        },
-        {
-          slug: 'bars',
-          icon: 'beer',
-          display_order: 3,
-        },
-      ])
-      .select();
+    const categoryDefs = [
+      {
+        slug: 'restaurant',
+        names: { en: 'Restaurant', tr: 'Restoran' },
+        icon: '🍽️',
+        display_order: 1,
+      },
+      {
+        slug: 'cafe',
+        names: { en: 'Cafe', tr: 'Kafe' },
+        icon: '☕',
+        display_order: 2,
+      },
+      {
+        slug: 'bar',
+        names: { en: 'Bar & Pub', tr: 'Bar & Pub' },
+        icon: '🍺',
+        display_order: 3,
+      },
+    ];
 
-    if (categoriesError) throw categoriesError;
-    console.log('✅ Categories inserted:', categories?.length);
+    const categories: any[] = [];
+    for (const cat of categoryDefs) {
+      const { data: existing } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('slug', cat.slug)
+        .single();
 
-    // 2. Insert Turkey
+      if (existing) {
+        categories.push(existing);
+        console.log(`  ✅ ${cat.slug} already exists`);
+      } else {
+        const { data: newCat, error } = await supabase
+          .from('categories')
+          .insert(cat)
+          .select()
+          .single();
+        if (error) throw error;
+        categories.push(newCat);
+        console.log(`  ✅ ${cat.slug} created`);
+      }
+    }
+
+    // 2. Insert Turkey (skip if exists)
     console.log('🇹🇷 Inserting Turkey...');
-    const { data: turkey, error: turkeyError } = await supabase
+    let { data: turkey } = await supabase
       .from('locations')
-      .insert({
-        type: 'country',
-        slug: 'turkey',
-        path: '/turkey',
-        has_districts: false,
-        latitude: 38.9637,
-        longitude: 35.2433,
-      })
-      .select()
+      .select('*')
+      .eq('slug', 'turkey')
+      .eq('type', 'country')
       .single();
 
-    if (turkeyError) throw turkeyError;
-    console.log('✅ Turkey inserted');
+    if (!turkey) {
+      const { data: newTurkey, error: turkeyError } = await supabase
+        .from('locations')
+        .insert({
+          type: 'country',
+          slug: 'turkey',
+          names: { en: 'Turkey', tr: 'Türkiye' },
+          path: '/turkey',
+          has_districts: false,
+          latitude: 38.9637,
+          longitude: 35.2433,
+        })
+        .select()
+        .single();
+
+      if (turkeyError) throw turkeyError;
+      turkey = newTurkey;
+      console.log('✅ Turkey inserted');
+    } else {
+      console.log('✅ Turkey already exists');
+    }
 
     // 3. Insert Cities
     console.log('🏙️ Inserting cities...');
@@ -72,6 +141,7 @@ async function seedDatabase() {
         parent_id: turkey.id,
         type: 'city' as const,
         slug: 'istanbul',
+        names: { en: 'Istanbul', tr: 'İstanbul' },
         path: '/turkey/istanbul',
         has_districts: true,
         latitude: 41.0082,
@@ -81,6 +151,7 @@ async function seedDatabase() {
         parent_id: turkey.id,
         type: 'city' as const,
         slug: 'ankara',
+        names: { en: 'Ankara', tr: 'Ankara' },
         path: '/turkey/ankara',
         has_districts: false,
         latitude: 39.9334,
@@ -90,6 +161,7 @@ async function seedDatabase() {
         parent_id: turkey.id,
         type: 'city' as const,
         slug: 'izmir',
+        names: { en: 'Izmir', tr: 'İzmir' },
         path: '/turkey/izmir',
         has_districts: false,
         latitude: 38.4237,
@@ -99,6 +171,7 @@ async function seedDatabase() {
         parent_id: turkey.id,
         type: 'city' as const,
         slug: 'antalya',
+        names: { en: 'Antalya', tr: 'Antalya' },
         path: '/turkey/antalya',
         has_districts: false,
         latitude: 36.8969,
@@ -108,6 +181,7 @@ async function seedDatabase() {
         parent_id: turkey.id,
         type: 'city' as const,
         slug: 'bursa',
+        names: { en: 'Bursa', tr: 'Bursa' },
         path: '/turkey/bursa',
         has_districts: false,
         latitude: 40.1826,
@@ -117,6 +191,7 @@ async function seedDatabase() {
         parent_id: turkey.id,
         type: 'city' as const,
         slug: 'gaziantep',
+        names: { en: 'Gaziantep', tr: 'Gaziantep' },
         path: '/turkey/gaziantep',
         has_districts: false,
         latitude: 37.0662,
@@ -124,13 +199,47 @@ async function seedDatabase() {
       },
     ];
 
-    const { data: insertedCities, error: citiesError } = await supabase
+    // Check existing cities and insert only new ones
+    const existingCities = await supabase
       .from('locations')
-      .insert(cities)
-      .select();
+      .select('slug')
+      .eq('type', 'city')
+      .in(
+        'slug',
+        cities.map((c) => c.slug)
+      );
 
-    if (citiesError) throw citiesError;
-    console.log('✅ Cities inserted:', insertedCities?.length);
+    const existingSlugs = new Set(
+      (existingCities.data || []).map((c: { slug: string }) => c.slug)
+    );
+    const citiesToInsert = cities.filter((c) => !existingSlugs.has(c.slug));
+
+    let insertedCities = existingCities.data || [];
+
+    if (citiesToInsert.length > 0) {
+      const { data: newCities, error: citiesError } = await supabase
+        .from('locations')
+        .insert(citiesToInsert)
+        .select();
+
+      if (citiesError) throw citiesError;
+      insertedCities = [...insertedCities, ...(newCities || [])];
+      console.log(
+        `✅ Cities inserted: ${citiesToInsert.length} new, ${existingSlugs.size} already existed`
+      );
+    } else {
+      console.log(`✅ All cities already exist: ${cities.length}`);
+      // Fetch all cities to get their IDs
+      const { data: allCities } = await supabase
+        .from('locations')
+        .select('*')
+        .eq('type', 'city')
+        .in(
+          'slug',
+          cities.map((c) => c.slug)
+        );
+      insertedCities = allCities || [];
+    }
 
     // 4. Insert Istanbul Districts
     const istanbul = insertedCities?.find((c) => c.slug === 'istanbul');
@@ -141,6 +250,7 @@ async function seedDatabase() {
           parent_id: istanbul.id,
           type: 'district' as const,
           slug: 'kadikoy',
+          names: { en: 'Kadıköy', tr: 'Kadıköy' },
           path: '/turkey/istanbul/kadikoy',
           has_districts: false,
           latitude: 40.9904,
@@ -150,6 +260,7 @@ async function seedDatabase() {
           parent_id: istanbul.id,
           type: 'district' as const,
           slug: 'besiktas',
+          names: { en: 'Beşiktaş', tr: 'Beşiktaş' },
           path: '/turkey/istanbul/besiktas',
           has_districts: false,
           latitude: 41.0422,
@@ -159,6 +270,7 @@ async function seedDatabase() {
           parent_id: istanbul.id,
           type: 'district' as const,
           slug: 'beyoglu',
+          names: { en: 'Beyoğlu', tr: 'Beyoğlu' },
           path: '/turkey/istanbul/beyoglu',
           has_districts: false,
           latitude: 41.0351,
@@ -166,19 +278,51 @@ async function seedDatabase() {
         },
       ];
 
-      const { data: insertedDistricts, error: districtsError } = await supabase
+      // Check existing districts
+      const existingDistricts = await supabase
         .from('locations')
-        .insert(districts)
-        .select();
+        .select('*')
+        .eq('type', 'district')
+        .in(
+          'slug',
+          districts.map((d) => d.slug)
+        );
 
-      if (districtsError) throw districtsError;
-      console.log('✅ Districts inserted:', insertedDistricts?.length);
+      const existingDistrictSlugs = new Set(
+        (existingDistricts.data || []).map((d: { slug: string }) => d.slug)
+      );
+      const districtsToInsert = districts.filter(
+        (d) => !existingDistrictSlugs.has(d.slug)
+      );
+
+      let insertedDistricts = existingDistricts.data || [];
+
+      if (districtsToInsert.length > 0) {
+        const { data: newDistricts, error: districtsError } = await supabase
+          .from('locations')
+          .insert(districtsToInsert)
+          .select();
+
+        if (districtsError) throw districtsError;
+        insertedDistricts = [...insertedDistricts, ...(newDistricts || [])];
+        console.log(
+          `✅ Districts inserted: ${districtsToInsert.length} new, ${existingDistrictSlugs.size} already existed`
+        );
+      } else {
+        console.log(`✅ All districts already exist: ${districts.length}`);
+      }
 
       // 5. Insert Sample Places
-      const restaurantCategory = categories?.find((c) => c.slug === 'restaurants');
-      const cafeCategory = categories?.find((c) => c.slug === 'cafes');
-      const kadikoy = insertedDistricts?.find((d) => d.slug === 'kadikoy');
-      const beyoglu = insertedDistricts?.find((d) => d.slug === 'beyoglu');
+      const restaurantCategory = categories?.find(
+        (c) => c.slug === 'restaurant'
+      );
+      const cafeCategory = categories?.find((c) => c.slug === 'cafe');
+      const kadikoy = insertedDistricts?.find(
+        (d: { slug: string }) => d.slug === 'kadikoy'
+      );
+      const beyoglu = insertedDistricts?.find(
+        (d: { slug: string }) => d.slug === 'beyoglu'
+      );
 
       if (restaurantCategory && cafeCategory && kadikoy && beyoglu) {
         console.log('🍽️ Inserting sample places...');
@@ -187,6 +331,7 @@ async function seedDatabase() {
             location_id: beyoglu.id,
             category_id: restaurantCategory.id,
             slug: 'karakoy-lokantasi',
+            names: {
               en: 'Karaköy Lokantası',
               tr: 'Karaköy Lokantası',
             },
@@ -201,6 +346,10 @@ async function seedDatabase() {
             location_id: kadikoy.id,
             category_id: cafeCategory.id,
             slug: 'kronotrop',
+            names: {
+              en: 'Kronotrop',
+              tr: 'Kronotrop',
+            },
             descriptions: {
               en: 'Specialty coffee roastery with excellent brews',
               tr: 'Mükemmel kahveleri olan özel kahve kavurma',
@@ -212,6 +361,10 @@ async function seedDatabase() {
             location_id: kadikoy.id,
             category_id: restaurantCategory.id,
             slug: 'ciya-sofrasi',
+            names: {
+              en: 'Çiya Sofrası',
+              tr: 'Çiya Sofrası',
+            },
             descriptions: {
               en: 'Authentic Anatolian cuisine with daily changing menu',
               tr: 'Günlük değişen menüsü olan otantik Anadolu mutfağı',
@@ -221,13 +374,35 @@ async function seedDatabase() {
           },
         ];
 
-        const { data: insertedPlaces, error: placesError } = await supabase
+        // Check existing places
+        const existingPlaces = await supabase
           .from('places')
-          .insert(places)
-          .select();
+          .select('slug')
+          .in(
+            'slug',
+            places.map((p) => p.slug)
+          );
 
-        if (placesError) throw placesError;
-        console.log('✅ Places inserted:', insertedPlaces?.length);
+        const existingPlaceSlugs = new Set(
+          (existingPlaces.data || []).map((p: { slug: string }) => p.slug)
+        );
+        const placesToInsert = places.filter(
+          (p) => !existingPlaceSlugs.has(p.slug)
+        );
+
+        if (placesToInsert.length > 0) {
+          const { data: insertedPlaces, error: placesError } = await supabase
+            .from('places')
+            .insert(placesToInsert)
+            .select();
+
+          if (placesError) throw placesError;
+          console.log(
+            `✅ Places inserted: ${placesToInsert.length} new, ${existingPlaceSlugs.size} already existed`
+          );
+        } else {
+          console.log(`✅ All places already exist: ${places.length}`);
+        }
       }
     }
 
