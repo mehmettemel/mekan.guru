@@ -31,6 +31,7 @@ interface Place {
   vote_score: number;
   vote_count: number;
   category?: {
+    slug: string;
     names: { en: string; tr: string };
     icon: string;
   };

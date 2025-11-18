@@ -15,14 +15,14 @@ interface PlaceCardProps {
 export function PlaceCard({ place, rank }: PlaceCardProps) {
   const [voteState, setVoteState] = useState<'up' | 'down' | null>(null);
 
-  const names = place.names as Record<string, string>;
-  const descriptions = place.descriptions as Record<string, string>;
+  const names = place.names as unknown as Record<string, string>;
+  const descriptions = place.descriptions as unknown as Record<string, string>;
 
   const placeName = names.tr || names.en || place.slug;
   const placeDescription = descriptions.tr || descriptions.en || '';
 
   // Get category name
-  const categoryNames = place.category?.names as Record<string, string>;
+  const categoryNames = place.category?.names as unknown as Record<string, string>;
   const categoryName = categoryNames?.tr || categoryNames?.en || '';
 
   const handleVote = (type: 'up' | 'down') => {

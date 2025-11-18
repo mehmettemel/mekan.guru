@@ -94,7 +94,7 @@ async function seedDatabase() {
       } else {
         const { data: newCat, error } = await supabase
           .from('categories')
-          .insert(cat)
+          .insert(cat as any)
           .select()
           .single();
         if (error) throw error;
@@ -105,12 +105,12 @@ async function seedDatabase() {
 
     // 2. Insert Turkey (skip if exists)
     console.log('🇹🇷 Inserting Turkey...');
-    let { data: turkey } = await supabase
+    let { data: turkey } = (await supabase
       .from('locations')
       .select('*')
       .eq('slug', 'turkey')
       .eq('type', 'country')
-      .single();
+      .single()) as { data: { id: string } | null };
 
     if (!turkey) {
       const { data: newTurkey, error: turkeyError } = await supabase
@@ -123,7 +123,7 @@ async function seedDatabase() {
           has_districts: false,
           latitude: 38.9637,
           longitude: 35.2433,
-        })
+        } as any)
         .select()
         .single();
 
@@ -132,6 +132,10 @@ async function seedDatabase() {
       console.log('✅ Turkey inserted');
     } else {
       console.log('✅ Turkey already exists');
+    }
+
+    if (!turkey) {
+      throw new Error('Turkey location not found after insert/check');
     }
 
     // 3. Insert Cities
@@ -202,28 +206,30 @@ async function seedDatabase() {
     // Check existing cities and insert only new ones
     const existingCities = await supabase
       .from('locations')
-      .select('slug')
+      .select('*')
       .eq('type', 'city')
       .in(
         'slug',
         cities.map((c) => c.slug)
       );
 
+    type LocationRow = Database['public']['Tables']['locations']['Row'];
+
     const existingSlugs = new Set(
-      (existingCities.data || []).map((c: { slug: string }) => c.slug)
+      (existingCities.data as LocationRow[] || []).map((c) => c.slug)
     );
     const citiesToInsert = cities.filter((c) => !existingSlugs.has(c.slug));
 
-    let insertedCities = existingCities.data || [];
+    let insertedCities: LocationRow[] = (existingCities.data as LocationRow[]) || [];
 
     if (citiesToInsert.length > 0) {
       const { data: newCities, error: citiesError } = await supabase
         .from('locations')
-        .insert(citiesToInsert)
+        .insert(citiesToInsert as any)
         .select();
 
       if (citiesError) throw citiesError;
-      insertedCities = [...insertedCities, ...(newCities || [])];
+      insertedCities = [...insertedCities, ...((newCities as LocationRow[]) || [])];
       console.log(
         `✅ Cities inserted: ${citiesToInsert.length} new, ${existingSlugs.size} already existed`
       );
@@ -238,7 +244,7 @@ async function seedDatabase() {
           'slug',
           cities.map((c) => c.slug)
         );
-      insertedCities = allCities || [];
+      insertedCities = (allCities as LocationRow[]) || [];
     }
 
     // 4. Insert Istanbul Districts
@@ -289,22 +295,22 @@ async function seedDatabase() {
         );
 
       const existingDistrictSlugs = new Set(
-        (existingDistricts.data || []).map((d: { slug: string }) => d.slug)
+        ((existingDistricts.data as LocationRow[]) || []).map((d) => d.slug)
       );
       const districtsToInsert = districts.filter(
         (d) => !existingDistrictSlugs.has(d.slug)
       );
 
-      let insertedDistricts = existingDistricts.data || [];
+      let insertedDistricts: LocationRow[] = (existingDistricts.data as LocationRow[]) || [];
 
       if (districtsToInsert.length > 0) {
         const { data: newDistricts, error: districtsError } = await supabase
           .from('locations')
-          .insert(districtsToInsert)
+          .insert(districtsToInsert as any)
           .select();
 
         if (districtsError) throw districtsError;
-        insertedDistricts = [...insertedDistricts, ...(newDistricts || [])];
+        insertedDistricts = [...insertedDistricts, ...((newDistricts as LocationRow[]) || [])];
         console.log(
           `✅ Districts inserted: ${districtsToInsert.length} new, ${existingDistrictSlugs.size} already existed`
         );
@@ -318,10 +324,10 @@ async function seedDatabase() {
       );
       const cafeCategory = categories?.find((c) => c.slug === 'cafe');
       const kadikoy = insertedDistricts?.find(
-        (d: { slug: string }) => d.slug === 'kadikoy'
+        (d) => d.slug === 'kadikoy'
       );
       const beyoglu = insertedDistricts?.find(
-        (d: { slug: string }) => d.slug === 'beyoglu'
+        (d) => d.slug === 'beyoglu'
       );
 
       if (restaurantCategory && cafeCategory && kadikoy && beyoglu) {
@@ -393,7 +399,7 @@ async function seedDatabase() {
         if (placesToInsert.length > 0) {
           const { data: insertedPlaces, error: placesError } = await supabase
             .from('places')
-            .insert(placesToInsert)
+            .insert(placesToInsert as any)
             .select();
 
           if (placesError) throw placesError;

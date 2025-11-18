@@ -1,16 +1,12 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ locale: string }> }
-) {
-  const { locale } = await params;
+export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
-  const next = requestUrl.searchParams.get('next') || `/${locale}`;
+  const next = requestUrl.searchParams.get('next') || '/';
 
-  console.log('Callback route hit:', { locale, code: code?.substring(0, 10) + '...' });
+  console.log('Callback route hit:', { code: code?.substring(0, 10) + '...' });
 
   if (code) {
     const supabase = await createClient();
@@ -25,13 +21,16 @@ export async function GET(
       } else {
         console.error('❌ Error exchanging code:', error);
         return NextResponse.redirect(
-          new URL(`/${locale}/auth/error?message=${encodeURIComponent(error.message)}`, request.url)
+          new URL(
+            `/auth/error?message=${encodeURIComponent(error.message)}`,
+            request.url
+          )
         );
       }
     } catch (error) {
       console.error('❌ Exception during code exchange:', error);
       return NextResponse.redirect(
-        new URL(`/${locale}/auth/error?message=Verification failed`, request.url)
+        new URL(`/auth/error?message=Verification failed`, request.url)
       );
     }
   }
@@ -39,6 +38,6 @@ export async function GET(
   // No code provided
   console.log('❌ No code provided in callback');
   return NextResponse.redirect(
-    new URL(`/${locale}/auth/error?message=No verification code provided`, request.url)
+    new URL(`/auth/error?message=No verification code provided`, request.url)
   );
 }

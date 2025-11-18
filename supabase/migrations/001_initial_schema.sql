@@ -22,7 +22,7 @@ CREATE TABLE users (
 CREATE TABLE categories (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   slug VARCHAR(100) UNIQUE NOT NULL,
-  names JSONB NOT NULL, -- {"en": "Restaurants", "tr": "Restoranlar"}
+  names JSONB NOT NULL, -- {"en": "Restaurant", "tr": "Restoran"}
   icon VARCHAR(50),
   display_order INTEGER DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW()

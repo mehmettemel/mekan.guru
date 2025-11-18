@@ -1,9 +1,9 @@
 -- Insert categories
 INSERT INTO categories (slug, names, icon, display_order) VALUES
-  ('restaurants', '{"en": "Restaurants", "tr": "Restoranlar"}', 'utensils', 1),
-  ('cafes', '{"en": "Cafes", "tr": "Kafeler"}', 'coffee', 2),
-  ('bars', '{"en": "Bars & Pubs", "tr": "Barlar"}', 'beer', 3),
-  ('desserts', '{"en": "Desserts", "tr": "Tatlılar"}', 'ice-cream', 4),
+  ('restaurant', '{"en": "Restaurant", "tr": "Restoran"}', 'utensils', 1),
+  ('cafe', '{"en": "Cafe", "tr": "Kafe"}', 'coffee', 2),
+  ('bar', '{"en": "Bar & Pub", "tr": "Bar & Pub"}', 'beer', 3),
+  ('dessert', '{"en": "Dessert", "tr": "Tatlı"}', 'ice-cream', 4),
   ('street-food', '{"en": "Street Food", "tr": "Sokak Lezzetleri"}', 'truck', 5),
   ('bakery', '{"en": "Bakery", "tr": "Fırın & Pastane"}', 'croissant', 6);
 
