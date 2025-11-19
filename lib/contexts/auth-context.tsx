@@ -44,9 +44,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
-  // Profili güvenli bir şekilde çeken fonksiyon
+  // 1. Profil Çekme Fonksiyonunu Sadeleştirdik
+  // Retry mantığını kaldırdık çünkü sayfa yüklenirken bloklamaması gerekiyor.
+  // Hata olsa bile 'null' dönerek uygulamanın açılmasını sağlıyoruz.
   const fetchProfile = async (userId: string) => {
     try {
+      // console.log('🔍 Fetching profile for user:', userId);
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -54,25 +57,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single();
 
       if (error) {
-        console.error('❌ Profil çekme hatası (yoksayıldı):', error.message);
-        // Profil henüz oluşmamış olabilir (trigger gecikmesi), null set edip devam ediyoruz
+        console.error(
+          '❌ Profil çekilemedi (Sayfa yüklenmeye devam edecek):',
+          error.message
+        );
+        // Hata olsa bile null set ediyoruz ki eski profil kalmasın
+        setProfile(null);
         return null;
       }
 
+      // console.log('✅ Profile fetched:', data);
       setProfile(data);
       return data;
     } catch (error) {
-      console.error('❌ Profil çekme istisnası:', error);
+      console.error('❌ Unexpected error fetching profile:', error);
+      setProfile(null);
       return null;
     }
   };
 
+  // 2. Initialization Mantığını Düzelttik
   useEffect(() => {
     let mounted = true;
 
     async function initializeAuth() {
       try {
-        // 1. Mevcut oturumu al
+        // Mevcut oturumu al
         const {
           data: { session: initialSession },
         } = await supabase.auth.getSession();
@@ -83,7 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setSession(initialSession);
           setUser(initialSession.user);
 
-          // Kullanıcı varsa profili çekmeyi dene
+          // Kullanıcı varsa profilini çekmeyi dene ama hata verirse de devam et
           if (initialSession.user) {
             await fetchProfile(initialSession.user.id);
           }
@@ -91,40 +101,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         console.error('Auth başlatma hatası:', error);
       } finally {
-        // 2. Ne olursa olsun loading'i kapat (ÇÖZÜM BURASI)
+        // 3. NE OLURSA OLSUN LOADING'I KAPAT (Garanti Çıkış)
         if (mounted) {
           setLoading(false);
         }
       }
     }
 
+    // Başlat
     initializeAuth();
 
-    // Auth durum değişikliklerini dinle
+    // Auth state değişikliklerini dinle
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       if (!mounted) return;
-      console.log('🔄 Auth durumu değişti:', event);
 
+      // console.log('🔄 Auth state changed:', event);
       setSession(newSession);
       setUser(newSession?.user ?? null);
 
       if (newSession?.user) {
-        // Sadece oturum açma (SIGNED_IN) olayında profili çek
-        // INITIAL_SESSION olayını atlıyoruz çünkü yukarıdaki initializeAuth bunu zaten yapıyor
+        // Sadece oturum açıldığında (SIGNED_IN) veya token yenilendiğinde profili güncelle
+        // INITIAL_SESSION olayını atlıyoruz çünkü yukarıdaki initializeAuth bunu zaten yaptı
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          // Profil zaten yüklüyse tekrar çekme (gereksiz network trafiğini önle)
+          // Eğer profilimiz yoksa veya kullanıcı değiştiyse çek
           if (!profile || profile.id !== newSession.user.id) {
             await fetchProfile(newSession.user.id);
           }
         }
       } else if (event === 'SIGNED_OUT') {
         setProfile(null);
-        setLoading(false); // Çıkış yapıldığında loading hemen kapanmalı
+        setLoading(false); // Çıkışta hemen loading kapat
       }
 
-      // Her auth değişiminde loading'i kapatmayı garantiye al
+      // Her durumda loading'i kapat (güvenlik önlemi)
       setLoading(false);
     });
 
@@ -132,16 +143,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []); // Dependency array boş
-
-  // --- Diğer fonksiyonlar (Aynı kalabilir) ---
+  }, []); // Dependency array boş olmalı
 
   const signUp = async (email: string, password: string, username?: string) => {
     try {
+      // Tarayıcı ortamında olduğumuzdan emin olalım
+      const origin =
+        typeof window !== 'undefined' ? window.location.origin : '';
       const locale =
         typeof window !== 'undefined'
           ? window.location.pathname.split('/')[1] || 'en'
           : 'en';
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -149,7 +162,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           data: {
             username: username || email.split('@')[0],
           },
-          emailRedirectTo: `${window.location.origin}/${locale}/auth/callback`,
+          emailRedirectTo: `${origin}/${locale}/auth/callback`,
         },
       });
 
@@ -185,26 +198,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (!error) {
-        setUser(null);
-        setProfile(null);
-        setSession(null);
-      }
-      return { error };
-    } catch (error: any) {
-      return { error };
+    const { error } = await supabase.auth.signOut();
+    if (!error) {
+      setUser(null);
+      setProfile(null);
+      setSession(null);
     }
+    return { error };
   };
 
   const resetPassword = async (email: string) => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const locale =
       typeof window !== 'undefined'
         ? window.location.pathname.split('/')[1] || 'en'
         : 'en';
+
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/${locale}/auth/reset-password`,
+      redirectTo: `${origin}/${locale}/auth/reset-password`,
     });
     return { error };
   };
