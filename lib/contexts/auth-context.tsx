@@ -6,6 +6,7 @@ import { User, Session, AuthError } from '@supabase/supabase-js';
 import { createClient, resetClient } from '@/lib/supabase/client';
 import { Database } from '@/types/database';
 import { debugAuthState } from '@/lib/supabase/debug-client';
+import { warmSupabaseConnection } from '@/lib/supabase/warm-connection';
 
 type UserProfile = Database['public']['Tables']['users']['Row'];
 
@@ -47,9 +48,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
   const fetchingProfile = useRef(false);
 
-  // Optimized profile fetching with race condition protection
-  const fetchProfile = useCallback(async (userId: string, force = false) => {
-    console.log('📥 [FETCH PROFILE] Called for user:', userId, 'force:', force);
+  // Optimized profile fetching with retry mechanism for cold starts
+  const fetchProfile = useCallback(async (userId: string, force = false, retryCount = 0) => {
+    console.log('📥 [FETCH PROFILE] Called for user:', userId, 'force:', force, 'retry:', retryCount);
 
     // Prevent concurrent fetches for same user
     if (!force && fetchingProfile.current) {
@@ -65,12 +66,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     fetchingProfile.current = true;
     console.log('🔄 [FETCH PROFILE] Fetching from database...');
-    console.log('🔄 [FETCH PROFILE] Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
 
     try {
-      // Add timeout to prevent hanging
+      // Increase timeout for first attempt (cold start)
+      const timeoutDuration = retryCount === 0 ? 15000 : 8000;
+
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Profile fetch timeout after 10s')), 10000)
+        setTimeout(() => reject(new Error(`Profile fetch timeout after ${timeoutDuration/1000}s`)), timeoutDuration)
       );
 
       const fetchPromise = supabase
@@ -79,7 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('id', userId)
         .single();
 
-      console.log('🔄 [FETCH PROFILE] Query sent, waiting for response...');
+      console.log('🔄 [FETCH PROFILE] Query sent, waiting for response... (timeout: ' + timeoutDuration/1000 + 's)');
 
       const { data, error } = await Promise.race([
         fetchPromise,
@@ -87,12 +89,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ]) as any;
 
       console.log('🔄 [FETCH PROFILE] Response received!');
-      console.log('🔄 [FETCH PROFILE] Data:', data);
-      console.log('🔄 [FETCH PROFILE] Error:', error);
 
       if (error) {
         console.error('❌ [FETCH PROFILE] Error:', error);
-        console.error('❌ [FETCH PROFILE] Error details:', JSON.stringify(error));
         setProfile(null);
         return null;
       }
@@ -102,7 +101,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return data;
     } catch (error) {
       console.error('❌ [FETCH PROFILE] Unexpected error:', error);
-      console.error('❌ [FETCH PROFILE] Error type:', error instanceof Error ? error.message : 'Unknown');
+
+      // Retry once if it's a timeout and first attempt
+      if (retryCount < 1 && error instanceof Error && error.message.includes('timeout')) {
+        console.warn('🔄 [FETCH PROFILE] Timeout detected, retrying... (attempt ' + (retryCount + 2) + '/2)');
+        fetchingProfile.current = false; // Reset flag for retry
+
+        // Wait a bit before retry
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        return fetchProfile(userId, force, retryCount + 1);
+      }
+
       setProfile(null);
       return null;
     } finally {
@@ -119,6 +129,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Debug info
         console.log('🔄 [AUTH] Initializing auth...');
         debugAuthState();
+
+        // Warm up connection in background (don't await)
+        warmSupabaseConnection().catch(err =>
+          console.warn('⚠️ [AUTH] Connection warming failed (non-blocking):', err)
+        );
 
         // Get current session from storage/cookies
         const {
