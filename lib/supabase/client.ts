@@ -10,6 +10,17 @@ export function createClient() {
     return client;
   }
 
+  // Determine cookie domain for production
+  // In production, don't set domain to allow cookies to work on any subdomain
+  const isProduction = process.env.NODE_ENV === 'production';
+  const cookieDomain = isProduction
+    ? undefined // Let browser handle it automatically
+    : (typeof window !== 'undefined' ? window.location.hostname : undefined);
+
+  console.log('🔧 [SUPABASE CLIENT] Creating client...');
+  console.log('🔧 [SUPABASE CLIENT] Environment:', process.env.NODE_ENV);
+  console.log('🔧 [SUPABASE CLIENT] Cookie domain:', cookieDomain);
+
   // @supabase/ssr handles cookies automatically in the browser
   // Singleton ensures consistent session management across the app
   client = createBrowserClient<Database>(
@@ -24,13 +35,14 @@ export function createClient() {
         storage: typeof window !== 'undefined' ? window.localStorage : undefined,
       },
       cookieOptions: {
-        domain: typeof window !== 'undefined' ? window.location.hostname : undefined,
+        domain: cookieDomain,
         path: '/',
         sameSite: 'lax',
       },
     }
   );
 
+  console.log('✅ [SUPABASE CLIENT] Client created successfully');
   return client;
 }
 
