@@ -1,7 +1,9 @@
 // @ts-nocheck
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Dialog,
   DialogContent,
@@ -21,15 +23,23 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Info } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { useMainCategories, useSubcategories } from '@/lib/hooks/use-categories';
+import { useCities } from '@/lib/hooks/use-locations';
+import {
+  collectionFormSchema,
+  type CollectionFormValues,
+  parseTags,
+  formatTags,
+} from '@/lib/validations/collection';
 
 interface CollectionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
   userId: string;
-  collection?: any; // For editing
+  collection?: any;
 }
 
 export function CollectionDialog({
@@ -42,93 +52,61 @@ export function CollectionDialog({
   const supabase = createClient();
   const isEdit = !!collection;
 
-  const [loading, setLoading] = useState(false);
-  const [locations, setLocations] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [subcategories, setSubcategories] = useState<any[]>([]);
+  // TanStack Query hooks
+  const { data: cities = [], isLoading: citiesLoading } = useCities();
+  const { data: mainCategories = [], isLoading: categoriesLoading } =
+    useMainCategories();
 
-  // Form state
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [locationId, setLocationId] = useState('');
-  const [categoryId, setCategoryId] = useState('');
-  const [subcategoryId, setSubcategoryId] = useState('');
-  const [tags, setTags] = useState('');
+  // React Hook Form with Zod validation
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<CollectionFormValues>({
+    resolver: zodResolver(collectionFormSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      locationId: '',
+      categoryId: '',
+      subcategoryId: '',
+      tags: '',
+    },
+  });
 
-  // Track selected category slug
-  const [selectedCategorySlug, setSelectedCategorySlug] = useState('');
+  // Watch category to fetch subcategories
+  const selectedCategoryId = watch('categoryId');
+  const { data: subcategories = [] } = useSubcategories(selectedCategoryId);
 
-  // Load form data when editing
+  // Load existing collection data for editing
   useEffect(() => {
-    if (collection) {
-      setName(collection.names?.tr || '');
-      setDescription(collection.descriptions?.tr || '');
-      setLocationId(collection.location_id || '');
-      setCategoryId(collection.category_id || '');
-      setSubcategoryId(collection.subcategory_id || '');
-      setTags(collection.tags?.join(', ') || '');
+    if (collection && open) {
+      reset({
+        name: collection.names?.tr || '',
+        description: collection.descriptions?.tr || '',
+        locationId: collection.location_id || '',
+        categoryId: collection.category_id || '',
+        subcategoryId: collection.subcategory_id || '',
+        tags: formatTags(collection.tags || []),
+      });
+    } else if (!open) {
+      reset();
     }
-  }, [collection]);
+  }, [collection, open, reset]);
 
-  // Fetch locations and categories
+  // Clear subcategory when category changes
   useEffect(() => {
-    if (open) {
-      fetchLocations();
-      fetchCategories();
+    if (selectedCategoryId) {
+      setValue('subcategoryId', '');
     }
-  }, [open]);
+  }, [selectedCategoryId, setValue]);
 
-  const fetchLocations = async () => {
-    const { data } = await supabase
-      .from('locations')
-      .select('id, slug, names')
-      .eq('type', 'city')
-      .order('names->en');
-
-    setLocations(data || []);
-  };
-
-  const fetchCategories = async () => {
-    const { data } = await supabase
-      .from('categories')
-      .select('id, slug, names')
-      .is('parent_id', null)
-      .order('display_order');
-
-    setCategories(data || []);
-  };
-
-  // Fetch subcategories when category changes
-  const fetchSubcategories = async (parentId: string) => {
-    const { data } = await supabase
-      .from('categories')
-      .select('id, slug, names')
-      .eq('parent_id', parentId)
-      .order('display_order');
-
-    setSubcategories(data || []);
-  };
-
-  // When category changes, fetch subcategories and update slug
-  useEffect(() => {
-    if (categoryId) {
-      const selectedCategory = categories.find((cat) => cat.id === categoryId);
-      if (selectedCategory) {
-        setSelectedCategorySlug(selectedCategory.slug);
-
-        // Fetch subcategories for all categories
-        fetchSubcategories(categoryId);
-      }
-    } else {
-      setSelectedCategorySlug('');
-      setSubcategories([]);
-      setSubcategoryId('');
-    }
-  }, [categoryId, categories]);
-
+  // Generate slug helper
   const generateSlug = (name: string) => {
-    // Turkish character replacements
-    const turkishMap: { [key: string]: string } = {
+    const turkishMap: Record<string, string> = {
       ç: 'c',
       ğ: 'g',
       ı: 'i',
@@ -152,45 +130,28 @@ export function CollectionDialog({
       .replace(/(^-|-$)/g, '');
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !locationId || !categoryId) {
-      alert('Lütfen tüm zorunlu alanları doldurun');
-      return;
-    }
-
-    // Validate subcategory is selected if category has subcategories
-    if (subcategories.length > 0 && !subcategoryId) {
-      alert('Lütfen bir alt kategori seçin');
-      return;
-    }
-
-    setLoading(true);
-
+  // Form submit handler
+  const onSubmit = async (data: CollectionFormValues) => {
     try {
-      // Generate slug from Turkish name
-      const slug =
-        generateSlug(name) + '-' + Math.random().toString(36).substring(2, 6);
+      const slug = isEdit
+        ? collection.slug
+        : generateSlug(data.name) +
+          '-' +
+          Math.random().toString(36).substring(2, 6);
 
       const collectionData = {
-        slug: isEdit ? collection.slug : slug,
-        names: { tr: name, en: name }, // Same for both, searchable in both languages
-        descriptions: { tr: description, en: description },
+        slug,
+        names: { tr: data.name, en: data.name },
+        descriptions: { tr: data.description || '', en: data.description || '' },
         creator_id: userId,
-        location_id: locationId,
-        category_id: categoryId,
-        subcategory_id: subcategoryId || null,
-        tags: tags
-          ? tags
-              .split(',')
-              .map((t) => t.trim())
-              .filter(Boolean)
-          : [],
+        location_id: data.locationId,
+        category_id: data.categoryId,
+        subcategory_id: data.subcategoryId || null,
+        tags: parseTags(data.tags || ''),
         status: 'active',
       };
 
       if (isEdit) {
-        // Don't update slug when editing
         const { slug: _, ...updateData } = collectionData;
         const { error } = await supabase
           .from('collections')
@@ -208,172 +169,200 @@ export function CollectionDialog({
 
       onSuccess();
       onOpenChange(false);
-      resetForm();
+      reset();
     } catch (error: any) {
       console.error('Error saving collection:', error);
       alert(error.message || 'Koleksiyon kaydedilemedi');
-    } finally {
-      setLoading(false);
     }
   };
 
-  const resetForm = () => {
-    setName('');
-    setDescription('');
-    setLocationId('');
-    setCategoryId('');
-    setSubcategoryId('');
-    setTags('');
-    setSelectedCategorySlug('');
-    setSubcategories([]);
-  };
+  const hasSubcategories = subcategories.length > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>
-            {isEdit ? 'Koleksiyonu Düzenle' : 'Yeni Koleksiyon'}
+      <DialogContent className="!max-w-4xl max-h-[90vh] w-full overflow-y-auto">
+        <DialogHeader className="space-y-3">
+          <DialogTitle className="text-2xl font-bold">
+            {isEdit ? 'Koleksiyonu Düzenle' : 'Yeni Koleksiyon Oluştur'}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-base">
             {isEdit
-              ? 'Koleksiyon bilgilerini güncelle'
-              : 'Favori mekanlarından yeni bir koleksiyon oluştur'}
+              ? 'Koleksiyon bilgilerini güncelleyin'
+              : 'Favori mekanlarınızdan yeni bir koleksiyon oluşturun'}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Name */}
-          <div className="space-y-2">
-            <Label htmlFor="name">
-              Koleksiyon Adı <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="İstanbul'daki En İyi Kahve Dükkanları"
-              disabled={loading}
-              required
-            />
-            <p className="text-xs text-neutral-500">
-              URL otomatik oluşturulacak
-            </p>
-          </div>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Grid layout for responsive form */}
+          <div className="grid gap-6 sm:grid-cols-2">
+            {/* Collection Name */}
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="name" className="text-base font-semibold">
+                Koleksiyon Adı <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="name"
+                {...register('name')}
+                placeholder="Örn: İstanbul'daki En İyi Kahve Dükkanları"
+                className="h-11 text-base"
+                disabled={isSubmitting}
+              />
+              {errors.name && (
+                <p className="text-sm text-red-500">{errors.name.message}</p>
+              )}
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Info className="h-3.5 w-3.5" />
+                URL otomatik oluşturulacak
+              </p>
+            </div>
 
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Açıklama</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Şehirdeki favori kahve mekanlarım..."
-              disabled={loading}
-              rows={3}
-            />
-          </div>
+            {/* Description */}
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="description" className="text-base font-semibold">
+                Açıklama
+              </Label>
+              <Textarea
+                id="description"
+                {...register('description')}
+                placeholder="Koleksiyonunuz hakkında kısa bir açıklama yazın..."
+                className="min-h-[100px] resize-none text-base"
+                disabled={isSubmitting}
+              />
+              {errors.description && (
+                <p className="text-sm text-red-500">
+                  {errors.description.message}
+                </p>
+              )}
+            </div>
 
-          {/* Location */}
-          <div className="space-y-2">
-            <Label htmlFor="location">
-              Şehir <span className="text-red-500">*</span>
-            </Label>
-            <Select
-              value={locationId}
-              onValueChange={setLocationId}
-              disabled={loading}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Şehir seç" />
-              </SelectTrigger>
-              <SelectContent>
-                {locations.map((location) => (
-                  <SelectItem key={location.id} value={location.id}>
-                    {location.names.tr}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Category */}
-          <div className="space-y-2">
-            <Label htmlFor="category">
-              Kategori <span className="text-red-500">*</span>
-            </Label>
-            <Select
-              value={categoryId}
-              onValueChange={setCategoryId}
-              disabled={loading}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Kategori seç" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {category.names.tr}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Subcategory - Show if category has subcategories */}
-          {subcategories.length > 0 && (
+            {/* City Selection */}
             <div className="space-y-2">
-              <Label htmlFor="subcategory">
-                Alt Kategori <span className="text-red-500">*</span>
+              <Label htmlFor="location" className="text-base font-semibold">
+                Şehir <span className="text-red-500">*</span>
               </Label>
               <Select
-                value={subcategoryId}
-                onValueChange={setSubcategoryId}
-                disabled={loading}
+                value={watch('locationId')}
+                onValueChange={(value) => setValue('locationId', value)}
+                disabled={isSubmitting || citiesLoading}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Alt kategori seç" />
+                <SelectTrigger className="h-11 text-base">
+                  <SelectValue placeholder="Şehir seçin" />
                 </SelectTrigger>
                 <SelectContent>
-                  {subcategories.map((subcategory) => (
-                    <SelectItem key={subcategory.id} value={subcategory.id}>
-                      {subcategory.names.tr}
+                  {cities.map((city) => (
+                    <SelectItem key={city.id} value={city.id}>
+                      {city.names.tr}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-neutral-500">
-                Bu koleksiyondaki mekanların türünü belirt
+              {errors.locationId && (
+                <p className="text-sm text-red-500">
+                  {errors.locationId.message}
+                </p>
+              )}
+            </div>
+
+            {/* Category Selection */}
+            <div className="space-y-2">
+              <Label htmlFor="category" className="text-base font-semibold">
+                Kategori <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={watch('categoryId')}
+                onValueChange={(value) => setValue('categoryId', value)}
+                disabled={isSubmitting || categoriesLoading}
+              >
+                <SelectTrigger className="h-11 text-base">
+                  <SelectValue placeholder="Kategori seçin" />
+                </SelectTrigger>
+                <SelectContent>
+                  {mainCategories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.names.tr}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.categoryId && (
+                <p className="text-sm text-red-500">
+                  {errors.categoryId.message}
+                </p>
+              )}
+            </div>
+
+            {/* Subcategory Selection - Only show if category has subcategories */}
+            {hasSubcategories && (
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="subcategory" className="text-base font-semibold">
+                  Alt Kategori <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={watch('subcategoryId') || ''}
+                  onValueChange={(value) => setValue('subcategoryId', value)}
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger className="h-11 text-base">
+                    <SelectValue placeholder="Alt kategori seçin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {subcategories.map((subcategory) => (
+                      <SelectItem key={subcategory.id} value={subcategory.id}>
+                        {subcategory.names.tr}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.subcategoryId && (
+                  <p className="text-sm text-red-500">
+                    {errors.subcategoryId.message}
+                  </p>
+                )}
+                <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Info className="h-3.5 w-3.5" />
+                  Bu koleksiyondaki mekanların türünü belirtin
+                </p>
+              </div>
+            )}
+
+            {/* Tags */}
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="tags" className="text-base font-semibold">
+                Etiketler
+              </Label>
+              <Input
+                id="tags"
+                {...register('tags')}
+                placeholder="kahve, kahvaltı, samimi (virgülle ayırın)"
+                className="h-11 text-base"
+                disabled={isSubmitting}
+              />
+              {errors.tags && (
+                <p className="text-sm text-red-500">{errors.tags.message}</p>
+              )}
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Info className="h-3.5 w-3.5" />
+                Birden fazla etiket için virgül kullanın
               </p>
             </div>
-          )}
-
-          {/* Tags */}
-          <div className="space-y-2">
-            <Label htmlFor="tags">Etiketler</Label>
-            <Input
-              id="tags"
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              placeholder="kahve, kahvaltı, samimi (virgülle ayır)"
-              disabled={loading}
-            />
-            <p className="text-xs text-neutral-500">
-              Birden fazla etiket için virgül kullanın
-            </p>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-0">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={loading}
+              disabled={isSubmitting}
+              className="h-11 text-base"
             >
               İptal
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="h-11 text-base"
+            >
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isEdit ? 'Güncelle' : 'Oluştur'}
             </Button>
           </DialogFooter>
