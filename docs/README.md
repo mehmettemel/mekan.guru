@@ -44,6 +44,13 @@ Projeye hoş geldiniz! Bu klasör, projenin dokümantasyonunu içerir.
 - RLS policy doğrulama
 - Admin kullanıcı oluşturma
 
+### 7. **Collection Import Guide**
+📄 [COLLECTION-IMPORT-GUIDE.md](./COLLECTION-IMPORT-GUIDE.md)
+- SQL ile koleksiyon ekleme template'i
+- TypeScript script ile import
+- Örnek JSON veri yapıları
+- Kategori ve şehir slug'ları
+
 ## 🚀 Hızlı Başlangıç
 
 ### Development Ortamı
