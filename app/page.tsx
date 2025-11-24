@@ -27,10 +27,35 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   return (
     <>
+
+     {/* Best Collections Leaderboard */}
+      {leaderboardCollections && leaderboardCollections.length > 0 && (
+        <section className="container mx-auto px-4 py-12">
+          <div className="mb-8">
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+              <TrendingUp className="h-3.5 w-3.5" />
+              <span>Lider Tablosu</span>
+            </div>
+            <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-50">
+              En İyi Koleksiyonlar
+            </h2>
+            <p className="mt-2 text-neutral-600 dark:text-neutral-400">
+              En çok oy alan ve güvenilen koleksiyonlar
+            </p>
+          </div>
+
+          <CollectionsLeaderboard
+            initialCollections={leaderboardCollections}
+            cities={cities || []}
+            selectedCitySlug={selectedCitySlug}
+          />
+        </section>
+      )}
+      
       {/* Hero Banner - Featured Collection */}
       {featuredCollection && (
         <section className="container mx-auto px-4 py-8">
-          <HeroBanner collection={featuredCollection} />
+          <HeroBanner collection={featuredCollection as any} />
         </section>
       )}
 
@@ -51,7 +76,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           </div>
         </div>
 
-        <CollectionFeed collections={topCollections} />
+        <CollectionFeed collections={topCollections.map(c => ({...c, places_count: c.places_count || 0})) as any} />
       </section>
 
       {/* Categories Section */}
@@ -87,29 +112,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         </section>
       )}
 
-      {/* Best Collections Leaderboard */}
-      {leaderboardCollections && leaderboardCollections.length > 0 && (
-        <section className="container mx-auto px-4 py-12">
-          <div className="mb-8">
-            <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-              <TrendingUp className="h-3.5 w-3.5" />
-              <span>Lider Tablosu</span>
-            </div>
-            <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-50">
-              En İyi Koleksiyonlar
-            </h2>
-            <p className="mt-2 text-neutral-600 dark:text-neutral-400">
-              En çok oy alan ve güvenilen koleksiyonlar
-            </p>
-          </div>
-
-          <CollectionsLeaderboard
-            initialCollections={leaderboardCollections}
-            cities={cities || []}
-            selectedCitySlug={selectedCitySlug}
-          />
-        </section>
-      )}
+     
     </>
   );
 }

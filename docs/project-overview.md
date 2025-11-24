@@ -54,14 +54,9 @@ This hierarchical structure allows users to browse from broad to specific locati
 - **Trust Score**: Collections and places earn trust scores based on vote patterns
 - **Top 20 Calculation**: Aggregated from all collection votes
 
-### 4. **Multi-Language Content Support**
+### 4. **Turkish-First Content**
 
-LocalFlavors stores all content in multiple languages:
-
-- **Turkish (TR)**: Primary language for Turkish users
-- **English (EN)**: International audience
-
-All content (place names, descriptions, categories, locations, collection names) is stored as JSONB with both `en` and `tr` fields, allowing the platform to display content in the user's preferred language. The UI is currently in Turkish, but the database structure supports full internationalization.
+The platform is currently focused on the Turkish market. While the database structure supports multi-language content (JSONB fields), the application logic and UI are optimized for Turkish users.
 
 ### 5. **Hierarchical Category-Based Discovery**
 
@@ -173,8 +168,8 @@ A comprehensive admin panel for content management:
 
 Each collection contains:
 
-- **Multi-language Title**: "Mehmet's Adana Kebab Guide" (en, tr)
-- **Multi-language Description**: What makes this collection special
+- **Title**: "Mehmet's Adana Kebab Guide" (Turkish)
+- **Description**: What makes this collection special
 - **Creator**: User who created the collection
 - **Location**: Associated city or district
 - **Category**: Main category (Yemek, Kafe, etc.)
@@ -190,8 +185,8 @@ Each collection contains:
 
 Each place contains:
 
-- **Multi-language Names**: en, tr
-- **Multi-language Descriptions**: Detailed information in each language
+- **Name**: Place name
+- **Descriptions**: Detailed information
 - **Main Category**: Yemek, Kafe, Bar & Pub, or Hidden Gem
 - **Subcategory**: Specific type (e.g., Pideci, Kebapçı) - only for Yemek category
 - **Location**: Associated city or district
@@ -213,7 +208,7 @@ Hierarchical structure:
 Each category has:
 
 - **Slug**: URL-friendly identifier (pideci, kebapci, hamburgerci)
-- **Multi-language Names**
+- **Names**: Turkish names
 - **Parent Category**: Reference to main category (null for main categories)
 - **Icon**: Emoji or icon identifier
 - **Display Order**: For sorting in UI
@@ -230,7 +225,7 @@ Each location has:
 
 - **Type**: country, city, or district
 - **Slug**: URL-friendly identifier
-- **Multi-language Names**
+- **Names**: Turkish names
 - **Path**: Materialized path for hierarchy
 - **Coordinates**: latitude, longitude
 - **has_districts**: Flag indicating if it has sub-locations
@@ -253,6 +248,7 @@ Each location has:
 /turkey/istanbul/kadikoy                          → Top places in Kadıköy district
 /collections                                       → Browse all collections
 /collections/[slug]                                → Individual collection detail page
+/categories/[slug]                                 → Collections by category
 /my-collections                                    → User's collections management (protected)
 /favorites                                         → User's voted collections (protected)
 /profile/[username]                                → User profile page
@@ -274,23 +270,24 @@ Each location has:
 - ✅ Collection creation and management system (User & Admin CRUD)
 - ✅ Collection-based voting mechanism (Database triggers with automatic vote propagation)
 - ✅ Admin dashboard with collection moderation
-- ✅ Multi-language content support (database level)
+- ✅ Turkish-first content support
 - ✅ User authentication (Supabase Auth) - Email/password, email verification, password reset
 - ✅ User profiles with stats (followers, following, collections, reputation)
 - ✅ User following system
 - ✅ Favorites page (upvoted/downvoted collections)
+- ✅ Category page (collections by category)
 - ✅ Public collection browsing interface
 - ✅ Collection detail pages with drag & drop place ordering
 - ✅ Protected routes and role-based access control
 - ✅ Top 20 calculation from aggregated collection votes (fully implemented)
-- ✅ Homepage leaderboard showing places ranked by collection votes
+- ✅ Homepage leaderboard showing top collections
 - ✅ Recommended items system for places in collections
 - ✅ Duplicate detection when creating new places
 - ✅ Seed scripts for demo data (locations, categories, demo collections)
+- ✅ Collection voting UI (upvote/downvote buttons on leaderboard and details)
 
 ### Phase 2 (Upcoming)
 
-- 📋 Collection voting UI (upvote/downvote buttons on collection pages)
 - 📋 Collection search and filtering
 - 📋 Advanced curator reputation system
 - 📋 Place suggestions by users
@@ -353,10 +350,6 @@ Trust is built through both individual expertise and collective wisdom. The plat
 ### Scalable Architecture
 
 Built with modern technologies and best practices to ensure the platform can grow from Turkey to global coverage without major rewrites. The flexible collection system can accommodate any location or category.
-
-### Multi-Language Content Support
-
-All content in the database is stored with both Turkish and English versions, allowing for future full internationalization. The current UI is in Turkish, but the data structure supports seamless language switching.
 
 ### Performance-Focused
 
@@ -421,6 +414,10 @@ Server-side rendering, edge caching, and optimized queries ensure fast page load
 - **Drag & Drop**: @dnd-kit for collection place reordering
 - **Dark Mode**: System-aware theme switching with next-themes
 - **Seed Scripts**: Comprehensive seeding for locations, categories, and demo collections
+
+---
+
+**LocalFlavors** - Where personal curation meets community wisdom.
 
 ---
 

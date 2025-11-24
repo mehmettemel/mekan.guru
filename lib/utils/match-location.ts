@@ -81,7 +81,7 @@ export async function matchLocationFromGoogle(
     const { data: locations, error } = await supabase
       .from('locations')
       .select('id, type, slug, names')
-      .in('type', ['city', 'district']);
+      .in('type', ['city', 'district']) as any;
 
     if (error) {
       console.error('Error fetching locations:', error);
@@ -209,7 +209,7 @@ export async function findCityByName(cityName: string): Promise<string | null> {
     const { data, error } = await supabase
       .from('locations')
       .select('id, names')
-      .eq('type', 'city');
+      .eq('type', 'city') as any;
 
     if (error || !data) return null;
 

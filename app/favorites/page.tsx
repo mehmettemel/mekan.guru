@@ -90,7 +90,7 @@ export default function FavoritesPage() {
         `
         )
         .eq('user_id', user.id)
-        .eq('vote_type', 'upvote')
+        .eq('value', 1)
         .order('created_at', { ascending: false });
 
       if (upvotesError) throw upvotesError;
@@ -109,13 +109,13 @@ export default function FavoritesPage() {
         `
         )
         .eq('user_id', user.id)
-        .eq('vote_type', 'downvote')
+        .eq('value', -1)
         .order('created_at', { ascending: false });
 
       if (downvotesError) throw downvotesError;
 
       // Get places count for each collection
-      const processCollections = async (votesData: any[]) => {
+      const processCollections = async (votesData: any[], voteType: 'upvote' | 'downvote') => {
         return await Promise.all(
           (votesData || []).map(async (vote) => {
             const { count } = await supabase
@@ -129,14 +129,14 @@ export default function FavoritesPage() {
                 places_count: count || 0,
               },
               voted_at: vote.created_at,
-              vote_type: vote.collection ? 'upvote' : 'downvote',
+              vote_type: voteType,
             } as VotedCollection;
           })
         );
       };
 
-      const upvotedWithCounts = await processCollections(upvotesData || []);
-      const downvotedWithCounts = await processCollections(downvotesData || []);
+      const upvotedWithCounts = await processCollections(upvotesData || [], 'upvote');
+      const downvotedWithCounts = await processCollections(downvotesData || [], 'downvote');
 
       setUpvotedCollections(upvotedWithCounts);
       setDownvotedCollections(downvotedWithCounts);

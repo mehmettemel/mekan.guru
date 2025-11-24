@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
         short_name: comp.shortText,
         types: comp.types,
       })) || [],
-    };
+    } as any;
 
     // Extract city/district from address components for location matching
     const cityComponent = data.addressComponents?.find((comp: any) =>
