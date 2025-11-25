@@ -445,14 +445,14 @@ export async function getTopCollections(
 
         // Filter by city if needed
         let filteredPlaces = places;
-        if (citySlug) {
+        if (citySlug && citySlug !== 'all') {
           filteredPlaces = places.filter(
             (cp: any) => cp.place?.location?.slug === citySlug
           );
         }
 
         // Skip if city filter applied and no places match
-        if (citySlug && filteredPlaces.length === 0) {
+        if (citySlug && citySlug !== 'all' && filteredPlaces.length === 0) {
           return null;
         }
 

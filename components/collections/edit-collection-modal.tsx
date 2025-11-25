@@ -49,6 +49,7 @@ interface PlaceInArray {
   user_ratings_total?: number;
   photo_url?: string;
   details?: any; // Full Google place details
+  famous_items: string[];
 }
 
 interface EditCollectionModalProps {
@@ -63,11 +64,16 @@ function SortablePlaceItem({
   place,
   index,
   onRemove,
+  onAddFamousItem,
+  onRemoveFamousItem,
 }: {
   place: PlaceInArray;
   index: number;
   onRemove: () => void;
+  onAddFamousItem: (item: string) => void;
+  onRemoveFamousItem: (itemIndex: number) => void;
 }) {
+  const [newItem, setNewItem] = useState('');
   const {
     attributes,
     listeners,
@@ -87,74 +93,128 @@ function SortablePlaceItem({
     <div
       ref={setNodeRef}
       style={style}
-      className="group relative flex items-center gap-3 rounded-lg border border-neutral-200 bg-white p-3 hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700"
+      className="group relative flex flex-col gap-3 rounded-lg border border-neutral-200 bg-white p-3 hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700"
     >
-      {/* Number & Drag Handle */}
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
-          {index + 1}.
-        </span>
-        <div
-          {...attributes}
-          {...listeners}
-          className="cursor-grab touch-none text-neutral-400 hover:text-neutral-600 active:cursor-grabbing dark:hover:text-neutral-300"
+      <div className="flex items-start gap-3">
+        {/* Number & Drag Handle */}
+        <div className="flex items-center gap-2 pt-1">
+          <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
+            {index + 1}.
+          </span>
+          <div
+            {...attributes}
+            {...listeners}
+            className="cursor-grab touch-none text-neutral-400 hover:text-neutral-600 active:cursor-grabbing dark:hover:text-neutral-300"
+          >
+            <GripVertical className="h-4 w-4" />
+          </div>
+        </div>
+
+        {/* Photo (if Google) */}
+        {place.photo_url && (
+          <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded">
+            <img
+              src={place.photo_url}
+              alt={place.name}
+              className="h-full w-full object-cover"
+            />
+          </div>
+        )}
+
+        {/* Content */}
+        <div className="min-w-0 flex-1">
+          <div className="truncate font-medium text-neutral-900 dark:text-neutral-50">
+            {place.name}
+          </div>
+          {place.type === 'google' && place.address && (
+            <TooltipProvider>
+              <Tooltip delayDuration={300}>
+                <TooltipTrigger asChild>
+                  <div className="mt-0.5 flex max-w-[300px] min-w-0 items-center gap-1 text-xs text-neutral-600 dark:text-neutral-400">
+                    <MapPin className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate">{place.address}</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-xs">
+                  <p className="text-xs">{place.address}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+          {place.type === 'google' && place.rating && (
+            <div className="mt-0.5 text-xs text-neutral-600 dark:text-neutral-400">
+              ⭐ {place.rating} ({place.user_ratings_total || 0})
+            </div>
+          )}
+          {place.type === 'text' && (
+            <div className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
+              📝 Kullanıcı ekledi
+            </div>
+          )}
+        </div>
+
+        {/* Remove Button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onRemove}
+          className="h-7 w-7 p-0 text-neutral-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400"
         >
-          <GripVertical className="h-4 w-4" />
-        </div>
+          <X className="h-4 w-4" />
+        </Button>
       </div>
 
-      {/* Photo (if Google) */}
-      {place.photo_url && (
-        <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded">
-          <img
-            src={place.photo_url}
-            alt={place.name}
-            className="h-full w-full object-cover"
+      {/* Famous Items Section */}
+      <div className="ml-8 border-t border-neutral-100 pt-3 dark:border-neutral-800">
+        <div className="mb-2 flex flex-wrap gap-1">
+          {(place.famous_items || []).map((item, idx) => (
+            <div
+              key={idx}
+              className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+            >
+              <span>{item}</span>
+              <button
+                type="button"
+                onClick={() => onRemoveFamousItem(idx)}
+                className="ml-0.5 rounded-full p-0.5 hover:bg-orange-200 dark:hover:bg-orange-800"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <Input
+            value={newItem}
+            onChange={(e) => setNewItem(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                if (newItem.trim()) {
+                  onAddFamousItem(newItem.trim());
+                  setNewItem('');
+                }
+              }
+            }}
+            placeholder="Meşhur lezzet ekle..."
+            className="h-8 text-xs"
           />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (newItem.trim()) {
+                onAddFamousItem(newItem.trim());
+                setNewItem('');
+              }
+            }}
+            className="h-8 px-2"
+          >
+            Ekle
+          </Button>
         </div>
-      )}
-
-      {/* Content */}
-      <div className="min-w-0 flex-1">
-        <div className="truncate font-medium text-neutral-900 dark:text-neutral-50">
-          {place.name}
-        </div>
-        {place.type === 'google' && place.address && (
-          <TooltipProvider>
-            <Tooltip delayDuration={300}>
-              <TooltipTrigger asChild>
-                <div className="mt-0.5 flex max-w-[300px] min-w-0 items-center gap-1 text-xs text-neutral-600 dark:text-neutral-400">
-                  <MapPin className="h-3 w-3 flex-shrink-0" />
-                  <span className="truncate">{place.address}</span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="top" className="max-w-xs">
-                <p className="text-xs">{place.address}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-        {place.type === 'google' && place.rating && (
-          <div className="mt-0.5 text-xs text-neutral-600 dark:text-neutral-400">
-            ⭐ {place.rating} ({place.user_ratings_total || 0})
-          </div>
-        )}
-        {place.type === 'text' && (
-          <div className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
-            📝 Kullanıcı ekledi
-          </div>
-        )}
       </div>
-
-      {/* Remove Button */}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onRemove}
-        className="h-7 w-7 p-0 text-neutral-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400"
-      >
-        <X className="h-4 w-4" />
-      </Button>
     </div>
   );
 }
@@ -250,6 +310,7 @@ export function EditCollectionModal({
         user_ratings_total: cp.place.user_ratings_total,
         photo_url: cp.place.images?.[0],
         details: cp.place,
+        famous_items: cp.famous_items || [],
       }));
       setPlaces(mappedPlaces);
     }
@@ -286,6 +347,7 @@ export function EditCollectionModal({
         user_ratings_total: details.user_ratings_total,
         photo_url: details.photos?.[0]?.url,
         details,
+        famous_items: [],
       };
 
       setPlaces([...places, newPlace]);
@@ -318,6 +380,7 @@ export function EditCollectionModal({
         id: `temp-${Date.now()}`,
         type: 'text',
         name: searchQuery.trim(),
+        famous_items: [],
       };
 
       setPlaces([...places, newPlace]);
@@ -337,6 +400,29 @@ export function EditCollectionModal({
 
   const handleRemovePlace = (id: string) => {
     setPlaces(places.filter((p) => p.id !== id));
+  };
+
+  const handleAddFamousItem = (placeId: string, item: string) => {
+    setPlaces(
+      places.map((p) =>
+        p.id === placeId
+          ? { ...p, famous_items: [...(p.famous_items || []), item] }
+          : p
+      )
+    );
+  };
+
+  const handleRemoveFamousItem = (placeId: string, itemIndex: number) => {
+    setPlaces(
+      places.map((p) =>
+        p.id === placeId
+          ? {
+              ...p,
+              famous_items: (p.famous_items || []).filter((_, idx) => idx !== itemIndex),
+            }
+          : p
+      )
+    );
   };
 
   const generateSlug = (text: string) => {
@@ -519,6 +605,7 @@ export function EditCollectionModal({
             collection_id: collectionId,
             place_id: placeId,
             display_order: index,
+            famous_items: place.famous_items,
           });
 
         if (cpError) throw cpError;
@@ -704,6 +791,12 @@ export function EditCollectionModal({
                             place={place}
                             index={index}
                             onRemove={() => handleRemovePlace(place.id)}
+                            onAddFamousItem={(item) =>
+                              handleAddFamousItem(place.id, item)
+                            }
+                            onRemoveFamousItem={(idx) =>
+                              handleRemoveFamousItem(place.id, idx)
+                            }
                           />
                         ))}
                       </div>

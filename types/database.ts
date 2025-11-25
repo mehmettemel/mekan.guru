@@ -326,6 +326,7 @@ export interface Database {
           place_id: string;
           display_order: number;
           curator_note: string | null;
+          famous_items: string[] | null;
           created_at: string;
         };
         Insert: {
@@ -334,6 +335,7 @@ export interface Database {
           place_id: string;
           display_order?: number;
           curator_note?: string | null;
+          famous_items?: string[] | null;
           created_at?: string;
         };
         Update: {
@@ -342,6 +344,7 @@ export interface Database {
           place_id?: string;
           display_order?: number;
           curator_note?: string | null;
+          famous_items?: string[] | null;
           created_at?: string;
         };
       };
