@@ -8,10 +8,42 @@ import { Badge } from '@/components/ui/badge';
 import { Particles } from '@/components/ui/particles';
 import { Flame, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
+import { JsonLd } from '@/components/seo/json-ld';
+import type { Metadata } from 'next';
 
 interface HomePageProps {
   searchParams: Promise<{ city?: string }>;
 }
+
+export const metadata: Metadata = {
+  title: 'Local Flavours - Türkiye\'nin En İyi Mekanları ve Restoranları',
+  description: 'Türkiye\'nin her şehrinden en iyi restoranlar, kafeler ve mekanları keşfedin. Kullanıcı koleksiyonları ile güvenilir öneriler. İstanbul, Ankara, İzmir ve daha fazlası.',
+  keywords: [
+    'türkiye restoranlar',
+    'istanbul restoranlar',
+    'ankara mekanlar',
+    'izmir kafeler',
+    'en iyi kebapçılar',
+    'kahvaltı mekanları',
+    'restoran önerileri',
+    'yemek koleksiyonları',
+    'yerel lezzetler',
+    'mekan keşfi',
+    'food guide turkey',
+    'restaurant recommendations'
+  ],
+  openGraph: {
+    title: 'Local Flavours - Türkiye\'nin En İyi Mekanları',
+    description: 'Türkiye\'nin her şehrinden en iyi restoranlar, kafeler ve mekanları keşfedin.',
+    type: 'website',
+    locale: 'tr_TR',
+    url: '/',
+    siteName: 'Local Flavours',
+  },
+  alternates: {
+    canonical: '/',
+  },
+};
 
 export default async function HomePage({ searchParams }: HomePageProps) {
   const params = await searchParams;
@@ -26,8 +58,34 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     getCities(),
   ]);
 
+  // JSON-LD structured data for homepage
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Local Flavours',
+    description: 'Türkiye\'nin en iyi mekanlarını ve restoranlarını keşfedin',
+    url: process.env.NEXT_PUBLIC_APP_URL || 'https://localflavours.com',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: `${process.env.NEXT_PUBLIC_APP_URL || 'https://localflavours.com'}/search?q={search_term_string}`
+      },
+      'query-input': 'required name=search_term_string'
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Local Flavours',
+      logo: {
+        '@type': 'ImageObject',
+        url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://localflavours.com'}/og-image.jpg`
+      }
+    }
+  };
+
   return (
     <>
+      <JsonLd data={jsonLd} />
       <div className="fixed inset-0 -z-10">
         <Particles
           className="absolute inset-0 h-full w-full dark:hidden"

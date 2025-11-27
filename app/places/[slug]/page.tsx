@@ -12,9 +12,50 @@ import { Button } from '@/components/ui/button';
 import { MapPin, Tag, ThumbsUp, ThumbsDown, ArrowLeft, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { JsonLd } from '@/components/seo/json-ld';
+import type { Metadata } from 'next';
 
 interface PlacePageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({ params }: PlacePageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const placeData = await getPlaceBySlug(slug);
+
+  if (!placeData) {
+    return {
+      title: 'Mekan Bulunamadı',
+    };
+  }
+
+  const place = placeData as any;
+  const title = `${place.names?.tr} - ${place.location?.names?.tr || ''} ${place.category?.names?.tr || ''}`;
+  const description = place.descriptions?.tr || `${place.names?.tr} - ${place.address}. ${place.location?.names?.tr || ''} bölgesinde ${place.category?.names?.tr || ''} kategorisinde ${place.vote_score || 0} puan ile.`;
+
+  return {
+    title,
+    description,
+    keywords: [
+      place.names?.tr,
+      place.location?.names?.tr,
+      place.category?.names?.tr,
+      'restoran',
+      'mekan önerisi',
+      place.location?.names?.tr + ' restoranlar',
+    ].filter(Boolean),
+    openGraph: {
+      title,
+      description,
+      type: 'place',
+      locale: 'tr_TR',
+      url: `/places/${slug}`,
+      siteName: 'Local Flavours',
+    },
+    alternates: {
+      canonical: `/places/${slug}`,
+    },
+  };
 }
 
 export default async function PlacePage({ params }: PlacePageProps) {
@@ -39,8 +80,37 @@ export default async function PlacePage({ params }: PlacePageProps) {
     const upvotes = voteStats?.filter((v: any) => v.value === 1).length || 0;
     const downvotes = voteStats?.filter((v: any) => v.value === -1).length || 0;
 
+    // JSON-LD for Restaurant
+    const jsonLd = {
+      '@context': 'https://schema.org',
+      '@type': 'Restaurant',
+      name: place.names?.tr,
+      description: place.descriptions?.tr || place.names?.tr,
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: place.address,
+        addressLocality: place.location?.names?.tr,
+        addressCountry: 'TR',
+      },
+      geo: place.latitude && place.longitude ? {
+        '@type': 'GeoCoordinates',
+        latitude: place.latitude,
+        longitude: place.longitude,
+      } : undefined,
+      servesCuisine: place.category?.names?.tr,
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: place.vote_score > 0 ? Math.min((place.vote_score / 10) + 3, 5) : 3,
+        bestRating: 5,
+        worstRating: 1,
+        ratingCount: place.vote_count || 0,
+      },
+      url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://localflavours.com'}/places/${place.slug}`,
+    };
+
     return (
       <div className="container mx-auto max-w-4xl space-y-6 py-8 px-4">
+        <JsonLd data={jsonLd} />
         {/* Back Button */}
         <Link href="/">
           <Button variant="ghost" size="sm">

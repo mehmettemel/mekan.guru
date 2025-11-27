@@ -9,6 +9,9 @@ LocalFlavors, topluluk destekli yerel restoran ve mekan öneri platformudur. Kul
 3. **[Veritabanı Şeması](./03-database.md)** - Tablo yapıları ve ilişkiler
 4. **[Kurulum ve Geliştirme](./04-setup.md)** - Projeyi ayağa kaldırma ve geliştirme
 5. **[API Referansı](./05-api.md)** - Backend fonksiyonlar ve endpoint'ler
+6. **[SEO Rehberi](./06-seo-guide.md)** - SEO iyileştirmeleri ve optimizasyon stratejisi
+7. **[SEO Roadmap](./07-seo-roadmap.md)** - Adım adım SEO uygulama planı (3-12 ay)
+8. **[Animasyon Sistemi](./08-animations.md)** - Page transitions ve animasyon kullanımı
 
 ## 🚀 Hızlı Başlangıç
 

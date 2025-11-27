@@ -7,6 +7,8 @@ import { getPlacesByLocation } from '@/lib/api/places';
 import { getAllCategories } from '@/lib/api/categories';
 import { CategoryFilter } from '@/components/places/category-filter';
 import { AnimatedPlacesList } from '@/components/places/animated-places-list';
+import { JsonLd } from '@/components/seo/json-ld';
+import type { Metadata } from 'next';
 
 interface CityPageProps {
   params: Promise<{
@@ -15,6 +17,47 @@ interface CityPageProps {
   searchParams: Promise<{
     category?: string;
   }>;
+}
+
+export async function generateMetadata({ params }: CityPageProps): Promise<Metadata> {
+  const { city: citySlug } = await params;
+  const city = await getLocationBySlug(citySlug);
+
+  if (!city || city.type !== 'city') {
+    return {
+      title: 'Şehir Bulunamadı',
+    };
+  }
+
+  const cityNames = city.names as Record<string, string>;
+  const cityName = cityNames.tr || cityNames.en || city.slug;
+  const title = `${cityName} En İyi Mekanlar ve Restoranlar | Local Flavours`;
+  const description = `${cityName} şehrindeki en iyi restoranlar, kafeler ve mekanları keşfedin. Kullanıcı önerileri ve puanlamaları ile ${cityName}'daki en popüler yerleri bulun.`;
+
+  return {
+    title,
+    description,
+    keywords: [
+      `${cityName} restoranlar`,
+      `${cityName} mekanlar`,
+      `${cityName} kafeler`,
+      `${cityName} yemek`,
+      `${cityName} gezi`,
+      'restoran önerileri',
+      'mekan keşfi',
+    ],
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      locale: 'tr_TR',
+      url: `/turkey/${citySlug}`,
+      siteName: 'Local Flavours',
+    },
+    alternates: {
+      canonical: `/turkey/${citySlug}`,
+    },
+  };
 }
 
 export default async function CityPage({
@@ -39,8 +82,32 @@ export default async function CityPage({
   const cityNames = city.names as Record<string, string>;
   const cityName = cityNames.tr || cityNames.en || city.slug;
 
+  // JSON-LD for City Page
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: `${cityName} En İyi Mekanlar`,
+    description: `${cityName} şehrindeki en iyi ${places?.length || 0} mekan`,
+    numberOfItems: places?.length || 0,
+    itemListElement: places?.slice(0, 20).map((place: any, index: number) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      item: {
+        '@type': 'Restaurant',
+        name: place.names?.tr,
+        address: place.address,
+        aggregateRating: place.vote_score ? {
+          '@type': 'AggregateRating',
+          ratingValue: Math.min((place.vote_score / 10) + 3, 5),
+          bestRating: 5,
+        } : undefined,
+      },
+    })) || [],
+  };
+
   return (
     <div className="min-h-screen bg-linear-to-br from-neutral-50 via-orange-50/30 to-neutral-50 dark:from-neutral-950 dark:via-orange-950/10 dark:to-neutral-950">
+      <JsonLd data={jsonLd} />
       {/* Animated Header */}
       <header className="sticky top-0 z-50 w-full border-b border-neutral-200/50 bg-white/80 backdrop-blur-xl supports-backdrop-filter:bg-white/80 dark:border-neutral-800/50 dark:bg-neutral-950/80">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">

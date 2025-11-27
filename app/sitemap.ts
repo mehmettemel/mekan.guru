@@ -9,7 +9,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const routes = [
     '',
     '/favorites',
-    '/login',
+    '/my-collections',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date().toISOString(),
@@ -21,26 +21,69 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { data: collections } = await supabase
     .from('collections')
     .select('slug, updated_at')
-    .eq('is_public', true);
+    .eq('status', 'active')
+    .order('vote_score', { ascending: false })
+    .limit(1000);
 
-  const collectionRoutes = (collections || []).map((collection) => ({
+  const collectionRoutes = (collections || []).map((collection: any) => ({
     url: `${baseUrl}/collections/${collection.slug}`,
     lastModified: collection.updated_at,
     changeFrequency: 'weekly' as const,
     priority: 0.8,
   }));
 
-  // Fetch profiles
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('username, updated_at');
+  // Fetch places
+  const { data: places } = await supabase
+    .from('places')
+    .select('slug, updated_at')
+    .eq('status', 'approved')
+    .order('vote_score', { ascending: false })
+    .limit(1000);
 
-  const profileRoutes = (profiles || []).map((profile) => ({
-    url: `${baseUrl}/profile/${profile.username}`,
-    lastModified: profile.updated_at,
+  const placeRoutes = (places || []).map((place: any) => ({
+    url: `${baseUrl}/places/${place.slug}`,
+    lastModified: place.updated_at,
+    changeFrequency: 'weekly' as const,
+    priority: 0.7,
+  }));
+
+  // Fetch cities
+  const { data: cities } = await supabase
+    .from('locations')
+    .select('slug, updated_at')
+    .eq('type', 'city');
+
+  const cityRoutes = (cities || []).map((city: any) => ({
+    url: `${baseUrl}/turkey/${city.slug}`,
+    lastModified: city.updated_at || new Date().toISOString(),
+    changeFrequency: 'daily' as const,
+    priority: 0.9,
+  }));
+
+  // Fetch categories
+  const { data: categories } = await supabase
+    .from('categories')
+    .select('slug, created_at');
+
+  const categoryRoutes = (categories || []).map((category: any) => ({
+    url: `${baseUrl}/categories/${category.slug}`,
+    lastModified: category.created_at || new Date().toISOString(),
     changeFrequency: 'weekly' as const,
     priority: 0.6,
   }));
 
-  return [...routes, ...collectionRoutes, ...profileRoutes];
+  // Fetch user profiles
+  const { data: users } = await supabase
+    .from('users')
+    .select('username, updated_at')
+    .limit(500);
+
+  const profileRoutes = (users || []).map((user: any) => ({
+    url: `${baseUrl}/profile/${user.username}`,
+    lastModified: user.updated_at,
+    changeFrequency: 'monthly' as const,
+    priority: 0.5,
+  }));
+
+  return [...routes, ...cityRoutes, ...collectionRoutes, ...placeRoutes, ...categoryRoutes, ...profileRoutes];
 }
