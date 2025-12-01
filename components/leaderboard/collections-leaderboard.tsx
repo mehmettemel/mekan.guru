@@ -29,42 +29,29 @@ interface City {
 interface CollectionsLeaderboardProps {
   initialCollections: CollectionWithDetails[];
   cities: City[];
+  categories: any[];
   selectedCitySlug: string;
 }
 
 export function CollectionsLeaderboard({
   initialCollections,
   cities,
+  categories,
   selectedCitySlug,
 }: CollectionsLeaderboardProps) {
   const [selectedCity, setSelectedCity] = useState(selectedCitySlug);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [filteredCollections, setFilteredCollections] = useState(initialCollections);
-  const [categories, setCategories] = useState<any[]>([]);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const supabase = createClient();
   const { user, session } = useAuth();
 
   // Featured cities for quick access buttons
-  // Featured cities for quick access buttons
   const featuredCities = ['istanbul', 'ankara', 'izmir', 'bursa', 'antalya', 'adana', 'konya', 'gaziantep'];
-  const featuredCityButtons = cities.filter((city) =>
-    featuredCities.includes(city.slug)
-  );
-
-  // Fetch categories
-  useEffect(() => {
-    const fetchCategories = async () => {
-      const { data } = await supabase
-        .from('categories')
-        .select('id, slug, names, icon')
-        .order('display_order');
-
-      setCategories(data || []);
-    };
-    fetchCategories();
-  }, []);
+  const featuredCityButtons = cities
+    .filter((city) => featuredCities.includes(city.slug))
+    .sort((a, b) => featuredCities.indexOf(a.slug) - featuredCities.indexOf(b.slug));
 
   // Top 6 categories to show as buttons
   const topCategories = categories.slice(0, 6);

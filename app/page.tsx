@@ -54,7 +54,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const [featuredCollection, topCollections, categories, leaderboardCollections, cities] = await Promise.all([
     getFeaturedCollection(selectedCitySlug),
     getTopCollections(selectedCitySlug, 12),
-    getCategories({ parent_id: null, limit: 8 }), // Get main categories
+    getCategories({ parent_id: null, limit: 30 }), // Get main categories
     getTopCollections(selectedCitySlug, 20), // Get top 20 for leaderboard
     getCities(),
   ]);
@@ -122,6 +122,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <CollectionsLeaderboard
           initialCollections={leaderboardCollections || []}
           cities={cities || []}
+          categories={categories || []}
           selectedCitySlug={selectedCitySlug}
         />
       </section>

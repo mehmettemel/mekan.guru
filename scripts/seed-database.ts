@@ -58,6 +58,8 @@ const supabase = createClient<Database>(supabaseUrl, supabaseServiceKey);
 // Helper function to create slug from Turkish city names
 function createSlug(name: string): string {
   return name
+    .replace(/İ/g, 'i') // Handle capital İ first
+    .replace(/I/g, 'i') // Handle capital I
     .toLowerCase()
     .replace(/ğ/g, 'g')
     .replace(/ü/g, 'u')
@@ -65,7 +67,6 @@ function createSlug(name: string): string {
     .replace(/ı/g, 'i')
     .replace(/ö/g, 'o')
     .replace(/ç/g, 'c')
-    .replace(/İ/g, 'i')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
 }
