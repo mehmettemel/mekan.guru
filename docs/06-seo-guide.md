@@ -13,7 +13,7 @@ Projenin SEO yapısı detaylı incelendi ve **kritik iyileştirmeler** uyguland�
 #### Ana Sayfa (`app/page.tsx`)
 ```typescript
 export const metadata: Metadata = {
-  title: 'Local Flavours - Türkiye\'nin En İyi Mekanları ve Restoranları',
+  title: 'mekan.guru - Türkiye\'nin En İyi Mekanları ve Restoranları',
   description: '...',
   keywords: ['türkiye restoranlar', 'istanbul restoranlar', ...],
   alternates: { canonical: '/' }
@@ -69,7 +69,7 @@ export async function generateMetadata({ params }): Promise<Metadata> {
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
-  name: 'Local Flavours',
+  name: 'mekan.guru',
   url: 'https://mekan.guru',
   potentialAction: {
     '@type': 'SearchAction',
@@ -168,7 +168,7 @@ return [
 ```typescript
 export const metadata: Metadata = {
   // Yeni eklemeler:
-  publisher: 'Local Flavours',
+  publisher: 'mekan.guru',
   robots: {
     index: true,
     follow: true,
@@ -249,7 +249,7 @@ Bu duplicate content sorunlarını önler.
 `/public/og-image.jpg` için:
 - Boyut: 1200x630 piksel
 - Format: JPG veya PNG
-- İçerik: "Local Flavours" logosu + tagline
+- İçerik: "mekan.guru" logosu + tagline
 - Maks boyut: 300KB
 
 **Araç Önerileri:**

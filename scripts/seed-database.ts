@@ -266,7 +266,7 @@ export async function seedDatabase() {
           .insert({
             slug: category.slug,
             names: category.names,
-            icon: category.icon,
+
             display_order: category.display_order,
             parent_id: null, // Always null for flat structure
           } as any)

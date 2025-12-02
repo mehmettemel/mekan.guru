@@ -61,12 +61,7 @@ export default function ContactPage() {
             description="Sıkça Sorulan Sorular"
             href="/faq"
           />
-          <ContactInfoCard
-            icon={<Github className="h-6 w-6" />}
-            title="GitHub"
-            description="Açık kaynak proje"
-            href="https://github.com/localflavours"
-          />
+
           <ContactInfoCard
             icon={<MapPin className="h-6 w-6" />}
             title="Konum"
@@ -124,29 +119,7 @@ export default function ContactPage() {
                 </CardContent>
               </Card>
 
-              {/* Support Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Github className="h-5 w-5 text-orange-500" />
-                    Teknik Destek
-                  </CardTitle>
-                  <CardDescription>
-                    Teknik sorunlar için GitHub'da issue açabilirsiniz.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <a
-                    href="https://github.com/localflavours/issues"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-sm font-medium text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300"
-                  >
-                    GitHub Issues
-                    <Send className="h-4 w-4" />
-                  </a>
-                </CardContent>
-              </Card>
+
             </div>
 
             {/* Response Time Note */}

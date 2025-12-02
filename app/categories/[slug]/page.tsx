@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   const category = categoryData as any;
 
   return {
-    title: `${category.names.tr} Koleksiyonları | Local Flavours`,
+    title: `${category.names.tr} Koleksiyonları | mekan.guru`,
     description: `${category.names.tr} kategorisindeki en iyi mekan koleksiyonlarını keşfedin.`,
   };
 }

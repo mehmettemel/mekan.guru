@@ -208,8 +208,8 @@ BEGIN
   VALUES (
     NEW.id,
     'welcome',
-    'Welcome to LocalFlavors!',
-    'Thank you for joining LocalFlavors. Start exploring collections of the best local places!'
+    'Welcome to mekan.guru!',
+    'Thank you for joining mekan.guru. Start exploring collections of the best local places!'
   );
 
   RETURN NEW;

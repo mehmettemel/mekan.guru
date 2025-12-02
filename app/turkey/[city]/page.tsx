@@ -31,8 +31,8 @@ export async function generateMetadata({ params }: CityPageProps): Promise<Metad
 
   const cityNames = city.names as Record<string, string>;
   const cityName = cityNames.tr || cityNames.en || city.slug;
-  const title = `${cityName} En İyi Mekanlar ve Restoranlar | Local Flavours`;
-  const description = `${cityName} şehrindeki en iyi restoranlar, kafeler ve mekanları keşfedin. Kullanıcı önerileri ve puanlamaları ile ${cityName}'daki en popüler yerleri bulun.`;
+  const title = `${cityName} En İyi Mekanlar ve Restoranlar | mekan.guru`;
+  const description = `${cityName} şehrindeki en iyi restoranları, kafeleri ve lezzet duraklarını keşfedin. ${cityName} için özel hazırlanmış koleksiyonlar ve öneriler.`;
 
   return {
     title,
@@ -52,7 +52,7 @@ export async function generateMetadata({ params }: CityPageProps): Promise<Metad
       type: 'website',
       locale: 'tr_TR',
       url: `/turkey/${citySlug}`,
-      siteName: 'Local Flavours',
+      siteName: 'mekan.guru',
     },
     alternates: {
       canonical: `/turkey/${citySlug}`,

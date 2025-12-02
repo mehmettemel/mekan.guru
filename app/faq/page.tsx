@@ -532,42 +532,7 @@ export default function FAQPage() {
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="other-2">
-                <AccordionTrigger>
-                  Hata buldum, nasıl bildirebilirim?
-                </AccordionTrigger>
-                <AccordionContent>
-                  <p className="text-neutral-600 dark:text-neutral-400">
-                    Hata bildirimi için lütfen GitHub repository'miz üzerinden issue açın veya
-                    bizimle iletişime geçin. Her türlü geri bildiriminiz değerlidir!
-                  </p>
-                </AccordionContent>
-              </AccordionItem>
 
-              <AccordionItem value="other-3">
-                <AccordionTrigger>
-                  Özellik önerisinde bulunabilir miyim?
-                </AccordionTrigger>
-                <AccordionContent>
-                  <p className="text-neutral-600 dark:text-neutral-400">
-                    Kesinlikle! Özellik önerilerinizi bizimle paylaşabilirsiniz. En çok talep
-                    edilen özellikler öncelikli olarak geliştirilecektir.
-                  </p>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="other-4">
-                <AccordionTrigger>
-                  Projeye katkıda bulunabilir miyim?
-                </AccordionTrigger>
-                <AccordionContent>
-                  <p className="text-neutral-600 dark:text-neutral-400">
-                    Evet! mekan.guru açık kaynak bir projedir. GitHub repository'mize pull
-                    request gönderebilir, hata düzeltmeleri yapabilir veya yeni özellikler
-                    ekleyebilirsiniz.
-                  </p>
-                </AccordionContent>
-              </AccordionItem>
             </Accordion>
           </div>
         </div>

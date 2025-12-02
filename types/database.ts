@@ -66,7 +66,6 @@ export interface Database {
           id: string;
           slug: string;
           names: MultilingualContent;
-          icon: string | null;
           display_order: number;
           created_at: string;
         };
@@ -74,7 +73,6 @@ export interface Database {
           id?: string;
           slug: string;
           names: MultilingualContent;
-          icon?: string | null;
           display_order?: number;
           created_at?: string;
         };
@@ -82,7 +80,6 @@ export interface Database {
           id?: string;
           slug?: string;
           names?: MultilingualContent;
-          icon?: string | null;
           display_order?: number;
           created_at?: string;
         };
@@ -273,7 +270,7 @@ export interface Database {
           names: MultilingualContent;
           descriptions: MultilingualContent | null;
           creator_id: string;
-          location_id: string;
+          location_id: string | null;
           category_id: string;
           subcategory_id: string | null;
           status: CollectionStatus;
@@ -290,7 +287,7 @@ export interface Database {
           names: MultilingualContent;
           descriptions?: MultilingualContent | null;
           creator_id: string;
-          location_id: string;
+          location_id: string | null;
           category_id: string;
           subcategory_id?: string | null;
           status?: CollectionStatus;
@@ -307,7 +304,7 @@ export interface Database {
           names?: MultilingualContent;
           descriptions?: MultilingualContent | null;
           creator_id?: string;
-          location_id?: string;
+          location_id?: string | null;
           category_id?: string;
           subcategory_id?: string | null;
           status?: CollectionStatus;

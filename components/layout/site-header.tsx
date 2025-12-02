@@ -81,14 +81,7 @@ export function SiteHeader() {
             </NavigationMenuItem> */}
 
             {/* Koleksiyonlar */}
-            <NavigationMenuItem>
-              <Link href="/my-collections" legacyBehavior passHref>
-                <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "h-10")}>
-                  <BookOpen className="mr-2 h-4 w-4" />
-                  Koleksiyonlar
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
+
 
             {/* FAQ */}
             <NavigationMenuItem>
@@ -201,14 +194,7 @@ export function SiteHeader() {
                 <Separator className="my-2" />
 
                 {/* Main Navigation Items */}
-                <Link
-                  href="/my-collections"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 rounded-lg px-3 py-3 font-medium transition-colors hover:bg-orange-50 dark:hover:bg-orange-950/30"
-                >
-                  <BookOpen className="h-5 w-5 text-orange-500" />
-                  Koleksiyonlar
-                </Link>
+
                 <Link
                   href="/faq"
                   onClick={() => setMobileMenuOpen(false)}
