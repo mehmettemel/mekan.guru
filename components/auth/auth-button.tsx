@@ -117,21 +117,21 @@ export function AuthButton() {
         <DropdownMenuSeparator />
 
         <DropdownMenuItem asChild>
-          <Link href={`/profile/${profile?.username}`}>
+          <Link href={`/profil/${profile?.username}`}>
             <User className="mr-2 h-4 w-4" />
             <span>Profil</span>
           </Link>
         </DropdownMenuItem>
 
         <DropdownMenuItem asChild>
-          <Link href="/my-collections">
+          <Link href="/koleksiyonlarim">
             <BookMarked className="mr-2 h-4 w-4" />
             <span>Koleksiyonlarım</span>
           </Link>
         </DropdownMenuItem>
 
         <DropdownMenuItem asChild>
-          <Link href="/favorites">
+          <Link href="/favoriler">
             <Star className="mr-2 h-4 w-4" />
             <span>Favorilerim</span>
           </Link>

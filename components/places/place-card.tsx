@@ -1,8 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
 import { Place } from '@/lib/api/places';
+import { createClient } from '@/lib/supabase/client';
+import { useAuth } from '@/lib/contexts/auth-context';
+import { toast } from 'sonner';
 
 interface PlaceCardProps {
   place: Place & {
@@ -14,6 +17,30 @@ interface PlaceCardProps {
 
 export function PlaceCard({ place, rank }: PlaceCardProps) {
   const [voteState, setVoteState] = useState<'up' | 'down' | null>(null);
+  const { user } = useAuth();
+  const supabase = createClient();
+
+  // Fetch user's vote on mount
+  useEffect(() => {
+    async function fetchUserVote() {
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('votes')
+        .select('value')
+        .eq('place_id', place.id)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (!error && data) {
+        const voteData = data as any;
+        if (voteData.value === 1) setVoteState('up');
+        else if (voteData.value === -1) setVoteState('down');
+      }
+    }
+
+    fetchUserVote();
+  }, [user, place.id, supabase]);
 
   const names = place.names as unknown as Record<string, string>;
   const descriptions = place.descriptions as unknown as Record<string, string>;
@@ -25,8 +52,63 @@ export function PlaceCard({ place, rank }: PlaceCardProps) {
   const categoryNames = place.category?.names as unknown as Record<string, string>;
   const categoryName = categoryNames?.tr || categoryNames?.en || '';
 
-  const handleVote = (type: 'up' | 'down') => {
-    setVoteState(voteState === type ? null : type);
+  const handleVote = async (type: 'up' | 'down') => {
+    if (!user) {
+      toast.error('Oy vermek için giriş yapmalısınız', {
+        action: {
+          label: 'Giriş Yap',
+          onClick: () => window.dispatchEvent(new CustomEvent('open-login-dialog')),
+        },
+      });
+      return;
+    }
+
+    // Optimistic update
+    const previousState = voteState;
+    const newState = voteState === type ? null : type;
+    setVoteState(newState);
+
+    try {
+      const voteValue = type === 'up' ? 1 : -1;
+
+      if (previousState === type) {
+        // Removing vote
+        const { error } = await supabase
+          .from('votes')
+          .delete()
+          .eq('place_id', place.id)
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+        toast.success('Oyunuz kaldırıldı');
+      } else if (previousState) {
+        // Changing vote (update)
+        const { error } = await (supabase as any)
+          .from('votes')
+          .update({ value: voteValue })
+          .eq('place_id', place.id)
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+        toast.success(type === 'up' ? 'Beğendiniz!' : 'Beğenmediniz');
+      } else {
+        // New vote (insert)
+        const { error } = await (supabase as any)
+          .from('votes')
+          .insert({
+            place_id: place.id,
+            user_id: user.id,
+            value: voteValue,
+          });
+
+        if (error) throw error;
+        toast.success(type === 'up' ? 'Beğendiniz!' : 'Beğenmediniz');
+      }
+    } catch (error) {
+      console.error('Error voting:', error);
+      setVoteState(previousState); // Revert on error
+      toast.error('Oy verilirken bir hata oluştu');
+    }
   };
 
   return (

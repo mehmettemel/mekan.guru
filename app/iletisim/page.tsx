@@ -59,7 +59,7 @@ export default function ContactPage() {
             icon={<MessageSquare className="h-6 w-6" />}
             title="Destek"
             description="Sıkça Sorulan Sorular"
-            href="/faq"
+            href="/sss"
           />
 
           <ContactInfoCard
@@ -110,7 +110,7 @@ export default function ContactPage() {
                 </CardHeader>
                 <CardContent>
                   <a
-                    href="/faq"
+                    href="/sss"
                     className="inline-flex items-center gap-2 text-sm font-medium text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300"
                   >
                     SSS Sayfasına Git

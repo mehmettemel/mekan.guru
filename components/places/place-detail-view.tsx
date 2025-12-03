@@ -30,15 +30,26 @@ interface Place {
   };
 }
 
+interface Collection {
+  id: string;
+  slug: string;
+  names: { tr: string };
+  vote_score: number;
+  vote_count: number;
+  places_count?: [{ count: number }];
+}
+
 interface PlaceDetailViewProps {
   place: Place;
   upvotes: number;
   downvotes: number;
+  collections?: Collection[];
 }
 
-function PlaceDetailContent({ place, upvotes, downvotes }: PlaceDetailViewProps) {
+function PlaceDetailContent({ place, upvotes, downvotes, collections = [] }: PlaceDetailViewProps) {
   const searchParams = useSearchParams();
   const fromUrl = searchParams.get('from');
+  const fromSlug = fromUrl?.split('/koleksiyonlar/')[1];
 
   return (
     <div className="container mx-auto max-w-4xl space-y-6 py-8 px-4">
@@ -120,6 +131,64 @@ function PlaceDetailContent({ place, upvotes, downvotes }: PlaceDetailViewProps)
           )}
         </CardContent>
       </Card>
+
+      {/* Related Collections */}
+      {collections.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Yer Aldığı Koleksiyonlar</CardTitle>
+            <CardDescription>
+              Bu mekanın dahil edildiği listeler
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {collections.map((collection) => {
+                const isFromThisCollection = fromSlug === collection.slug;
+                
+                return (
+                  <Link 
+                    key={collection.id} 
+                    href={`/koleksiyonlar/${collection.slug}`}
+                    className={`group block rounded-xl border p-4 transition-all hover:shadow-md ${
+                      isFromThisCollection 
+                        ? 'border-orange-200 bg-orange-50/50 dark:border-orange-900/50 dark:bg-orange-900/10' 
+                        : 'border-neutral-200 bg-white hover:border-orange-200 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-orange-900/50'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h4 className={`font-semibold transition-colors ${
+                          isFromThisCollection 
+                            ? 'text-orange-700 dark:text-orange-400' 
+                            : 'text-neutral-900 group-hover:text-orange-600 dark:text-neutral-50 dark:group-hover:text-orange-400'
+                        }`}>
+                          {collection.names.tr}
+                        </h4>
+                        <div className="mt-1 flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400">
+                          <span className="flex items-center gap-1">
+                            <ThumbsUp className="h-3 w-3" />
+                            {collection.vote_count || 0}
+                          </span>
+                          <span>•</span>
+                          <span>
+                            {collection.places_count?.[0]?.count || 0} Mekan
+                          </span>
+                        </div>
+                      </div>
+                      {isFromThisCollection && (
+                        <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-medium text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
+                          Buradan Geldin
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Voting Stats */}
       <Card>

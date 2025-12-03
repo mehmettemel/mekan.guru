@@ -98,7 +98,7 @@ export function EditUsernameForm() {
       });
 
       // Redirect to new profile URL
-      router.push(`/profile/${username}`);
+      router.push(`/profil/${username}`);
       router.refresh();
     } catch (error: any) {
       console.error('Error updating username:', error);

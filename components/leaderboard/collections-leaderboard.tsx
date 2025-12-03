@@ -42,6 +42,7 @@ export function CollectionsLeaderboard({
   const [selectedCity, setSelectedCity] = useState(selectedCitySlug);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [filteredCollections, setFilteredCollections] = useState(initialCollections);
+  const [userVotes, setUserVotes] = useState<Record<string, number>>({});
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const supabase = createClient();
@@ -69,6 +70,31 @@ export function CollectionsLeaderboard({
       setFilteredCollections(filtered);
     }
   }, [selectedCategory, initialCollections]);
+
+  // Fetch user votes for visible collections
+  useEffect(() => {
+    async function fetchUserVotes() {
+      if (!user || filteredCollections.length === 0) return;
+
+      const collectionIds = filteredCollections.map(c => c.id);
+      
+      const { data, error } = await supabase
+        .from('collection_votes')
+        .select('collection_id, value')
+        .eq('user_id', user.id)
+        .in('collection_id', collectionIds);
+
+      if (!error && data) {
+        const votes: Record<string, number> = {};
+        data.forEach(vote => {
+          votes[vote.collection_id] = vote.value;
+        });
+        setUserVotes(votes);
+      }
+    }
+
+    fetchUserVotes();
+  }, [user, filteredCollections, supabase]);
 
   const handleCityChange = (citySlug: string) => {
     setSelectedCity(citySlug);
@@ -116,6 +142,11 @@ export function CollectionsLeaderboard({
 
           if (error) throw error;
           toast.success('Oyunuz kaldırıldı');
+          
+          // Update local state
+          const newVotes = { ...userVotes };
+          delete newVotes[collectionId];
+          setUserVotes(newVotes);
         } else {
           // Update existing vote
           const { error } = await supabase
@@ -125,6 +156,9 @@ export function CollectionsLeaderboard({
 
           if (error) throw error;
           toast.success(voteType === 'up' ? 'Beğendiniz!' : 'Beğenmediniz');
+          
+          // Update local state
+          setUserVotes(prev => ({ ...prev, [collectionId]: voteValue }));
         }
       } else {
         // Insert new vote
@@ -134,6 +168,9 @@ export function CollectionsLeaderboard({
 
         if (error) throw error;
         toast.success(voteType === 'up' ? 'Beğendiniz!' : 'Beğenmediniz');
+        
+        // Update local state
+        setUserVotes(prev => ({ ...prev, [collectionId]: voteValue }));
       }
 
       // Refresh the page to show updated votes
@@ -329,10 +366,14 @@ export function CollectionsLeaderboard({
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 hover:bg-green-100 hover:text-green-600 dark:hover:bg-green-900/30 dark:hover:text-green-400"
+                            className={`h-8 w-8 p-0 ${
+                              userVotes[collection.id] === 1 
+                                ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' 
+                                : 'hover:bg-green-100 hover:text-green-600 dark:hover:bg-green-900/30 dark:hover:text-green-400'
+                            }`}
                             onClick={() => handleVote(collection.id, 'up')}
                           >
-                            <ThumbsUp className="h-4 w-4" />
+                            <ThumbsUp className={`h-4 w-4 ${userVotes[collection.id] === 1 ? 'fill-current' : ''}`} />
                           </Button>
                           <span className="min-w-[2ch] text-center text-sm font-medium text-neutral-600 dark:text-neutral-400">
                             {collection.vote_count || 0}
@@ -340,10 +381,14 @@ export function CollectionsLeaderboard({
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400"
+                            className={`h-8 w-8 p-0 ${
+                              userVotes[collection.id] === -1 
+                                ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' 
+                                : 'hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400'
+                            }`}
                             onClick={() => handleVote(collection.id, 'down')}
                           >
-                            <ThumbsDown className="h-4 w-4" />
+                            <ThumbsDown className={`h-4 w-4 ${userVotes[collection.id] === -1 ? 'fill-current' : ''}`} />
                           </Button>
                         </div>
                       </TableCell>
@@ -354,7 +399,7 @@ export function CollectionsLeaderboard({
                       </TableCell>
                       <TableCell>
                         <Link 
-                          href={`/profile/${collection.creator?.username}`}
+                          href={`/profil/${collection.creator?.username}`}
                           onClick={(e) => e.stopPropagation()}
                           className="flex items-center gap-2 hover:text-orange-600 dark:hover:text-orange-400"
                         >

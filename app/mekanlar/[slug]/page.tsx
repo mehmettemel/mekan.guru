@@ -71,6 +71,26 @@ export default async function PlacePage({ params }: PlacePageProps) {
     const upvotes = voteStats?.filter((v: any) => v.value === 1).length || 0;
     const downvotes = voteStats?.filter((v: any) => v.value === -1).length || 0;
 
+    // Get collections this place belongs to
+    const { data: relatedCollections } = await supabase
+      .from('collection_places')
+      .select(`
+        collection:collections(
+          id,
+          slug,
+          names,
+          vote_score,
+          vote_count,
+          places_count:collection_places(count)
+        )
+      `)
+      .eq('place_id', place.id)
+      .eq('collection.status', 'active');
+
+    const collections = relatedCollections
+      ?.map((item: any) => item.collection)
+      .filter((c: any) => c !== null) || [];
+
     // JSON-LD for Restaurant
     const jsonLd = {
       '@context': 'https://schema.org',
@@ -102,7 +122,12 @@ export default async function PlacePage({ params }: PlacePageProps) {
     return (
       <>
         <JsonLd data={jsonLd} />
-        <PlaceDetailView place={place} upvotes={upvotes} downvotes={downvotes} />
+        <PlaceDetailView 
+          place={place} 
+          upvotes={upvotes} 
+          downvotes={downvotes} 
+          collections={collections}
+        />
       </>
     );
   } catch (error) {

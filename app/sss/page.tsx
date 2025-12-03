@@ -556,7 +556,7 @@ export default function FAQPage() {
                   <Link href="/">Ana Sayfaya Dön</Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
-                  <Link href="/my-collections">Koleksiyon Oluştur</Link>
+                  <Link href="/koleksiyonlarim">Koleksiyon Oluştur</Link>
                 </Button>
               </div>
             </CardContent>

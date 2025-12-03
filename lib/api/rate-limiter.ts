@@ -10,9 +10,9 @@ export interface RateLimitConfig {
 
 export const RATE_LIMITS: Record<string, RateLimitConfig> = {
   'places/search': {
-    maxPerMinute: 10,
-    maxPerHour: 100,
-    maxPerDay: 500,
+    maxPerMinute: 60,
+    maxPerHour: 1000,
+    maxPerDay: 5000,
     costPerRequest: 0.017, // Google Places Autocomplete cost
   },
   'places/details': {
