@@ -107,7 +107,7 @@ export default function RootLayout({
         {/* Google Analytics 4 */}
         <script
           async
-          src="https://www.googletagmanager.com/gtag/js?id=G-PLACEHOLDER" // TODO: Replace G-PLACEHOLDER with actual GA4 Measurement ID
+          src="https://www.googletagmanager.com/gtag/js?id=G-DG0S76VP6K"
         />
         <script
           dangerouslySetInnerHTML={{
@@ -115,7 +115,7 @@ export default function RootLayout({
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
-              gtag('config', 'G-PLACEHOLDER'); // TODO: Replace G-PLACEHOLDER with actual GA4 Measurement ID
+              gtag('config', 'G-DG0S76VP6K');
             `,
           }}
         />
