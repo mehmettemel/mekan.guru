@@ -120,17 +120,13 @@ export function useSignUp() {
       username?: string;
     }) => {
       const origin = typeof window !== 'undefined' ? window.location.origin : '';
-      const locale =
-        typeof window !== 'undefined'
-          ? window.location.pathname.split('/')[1] || 'en'
-          : 'en';
 
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: { username: username || email.split('@')[0] },
-          emailRedirectTo: `${origin}/${locale}/auth/callback`,
+          emailRedirectTo: `${origin}/auth/callback`,
         },
       });
 
@@ -219,13 +215,9 @@ export function useResetPassword() {
   return useMutation({
     mutationFn: async (email: string) => {
       const origin = typeof window !== 'undefined' ? window.location.origin : '';
-      const locale =
-        typeof window !== 'undefined'
-          ? window.location.pathname.split('/')[1] || 'en'
-          : 'en';
 
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${origin}/${locale}/auth/reset-password`,
+        redirectTo: `${origin}/auth/reset-password`,
       });
 
       if (error) throw error;

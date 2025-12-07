@@ -204,7 +204,28 @@ export function CollectionsLeaderboard({
           <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
             Kategori:
           </span>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-col gap-3">
+            {/* Mobile Category Dropdown */}
+            <div className="lg:hidden w-full">
+              <Combobox
+                options={[
+                  { value: '', label: 'Tümü' },
+                  ...sortedCategories.map((cat) => ({
+                    value: cat.slug,
+                    label: cat.names.tr,
+                  }))
+                ]}
+                value={selectedCategory}
+                onValueChange={(value) => setSelectedCategory(value)}
+                placeholder="Kategori seçin..."
+                searchPlaceholder="Kategori ara..."
+                emptyText="Kategori bulunamadı."
+                className="w-full"
+              />
+            </div>
+
+            {/* Desktop Category Buttons */}
+            <div className="hidden lg:flex flex-wrap items-center gap-2">
             {/* Tümü button */}
             <Button
               variant={!selectedCategory ? 'default' : 'outline'}
@@ -249,10 +270,11 @@ export function CollectionsLeaderboard({
                 className="w-[200px]"
               />
             )}
+            </div>
           </div>
         </div>
         {/* Quick Access Buttons */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="hidden lg:flex flex-wrap items-center gap-3">
           <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
             Hızlı Erişim:
           </span>
