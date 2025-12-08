@@ -311,28 +311,25 @@ export default function FAQPage() {
                   <div className="space-y-3 text-neutral-600 dark:text-neutral-400">
                     <p>
                       Spam ve manipülasyonu önlemek için, oyların ağırlığı hesap yaşına göre
-                      değişir:
+                      değişir. Bu nedenle puanlar ondalıklı (örn: 4.3 veya -0.7) olabilir:
                     </p>
                     <ul className="space-y-1 pl-5">
                       <li>
-                        <strong>0-7 gün:</strong> Oy ağırlığı 0.1 (yeni hesaplar)
+                        <strong>Yeni Hesap (0-24 saat):</strong> Oy ağırlığı 0.3
                       </li>
                       <li>
-                        <strong>8-30 gün:</strong> Oy ağırlığı 0.3
+                        <strong>1 Haftaya Kadar:</strong> Oy ağırlığı 0.5
                       </li>
                       <li>
-                        <strong>31-90 gün:</strong> Oy ağırlığı 0.5
+                        <strong>1 Aya Kadar:</strong> Oy ağırlığı 0.7
                       </li>
                       <li>
-                        <strong>91-180 gün:</strong> Oy ağırlığı 0.7
-                      </li>
-                      <li>
-                        <strong>180+ gün:</strong> Oy ağırlığı 1.0 (tam ağırlık)
+                        <strong>1 Aydan Eski:</strong> Oy ağırlığı 1.0 (Tam Puan)
                       </li>
                     </ul>
                     <p className="mt-2">
                       Bu sistem, platformu uzun süredir kullanan güvenilir kullanıcıların
-                      oylarının daha fazla değer taşımasını sağlar.
+                      oylarının daha fazla değer taşımasını sağlar. Örneğin yeni bir hesap downvote verdiğinde skor sadece -0.3 düşerken, eski bir hesapta -1.0 düşer.
                     </p>
                   </div>
                 </AccordionContent>
