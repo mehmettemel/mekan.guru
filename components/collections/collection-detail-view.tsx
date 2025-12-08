@@ -123,7 +123,7 @@ export function CollectionDetailView({ collection }: CollectionDetailViewProps) 
       let newVoteCount = voteCount;
 
       if (userVote === voteValue) {
-        // Remove vote
+        // Remove vote - vote_count decreases by 1
         const { error } = await supabase
           .from('collection_votes')
           .delete()
@@ -133,13 +133,13 @@ export function CollectionDetailView({ collection }: CollectionDetailViewProps) 
         if (error) throw error;
         
         setUserVote(null);
-        newVoteCount -= voteValue;
+        newVoteCount -= 1;  // Always decrement by 1 when removing a vote
         toast.success('Oyunuz kaldırıldı');
       } else {
         // Update or Insert vote
         if (userVote !== null) {
-           // Changing vote (e.g. from -1 to 1, diff is 2)
-           newVoteCount += (voteValue - userVote);
+           // Changing vote (e.g. from upvote to downvote)
+           // vote_count stays the SAME - only the value changes, not the count
            
            const { error } = await (supabase
             .from('collection_votes') as any)
@@ -149,8 +149,8 @@ export function CollectionDetailView({ collection }: CollectionDetailViewProps) 
 
            if (error) throw error;
         } else {
-           // New vote
-           newVoteCount += voteValue;
+           // New vote - vote_count increases by 1
+           newVoteCount += 1;  // Always increment by 1 for new vote
 
            const { error } = await (supabase
             .from('collection_votes') as any)
