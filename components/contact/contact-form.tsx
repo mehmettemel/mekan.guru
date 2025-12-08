@@ -24,6 +24,7 @@ export function ContactForm() {
     subject: '',
     category: '',
     message: '',
+    website: '', // Honeypot field
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -181,6 +182,19 @@ export function ContactForm() {
               📧 <strong>Gizlilik:</strong> Email adresiniz sadece size dönüş yapmak için
               kullanılacaktır. Üçüncü taraflarla paylaşılmayacaktır.
             </p>
+          </div>
+
+          {/* Honeypot Field - Hidden from users */}
+          <div className="hidden" aria-hidden="true">
+            <Label htmlFor="website">Website</Label>
+            <Input
+              id="website"
+              name="website"
+              tabIndex={-1}
+              autoComplete="off"
+              value={formData.website}
+              onChange={handleChange}
+            />
           </div>
 
           {/* Submit Button */}

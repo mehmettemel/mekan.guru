@@ -7,9 +7,16 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, subject, category, message } = body;
+    const { name, email, subject, category, message, website } = body;
 
-    // Simple validation
+    // Spam check (Honeypot)
+    if (website && website.length > 0) {
+      // Silently reject spam
+      console.log('Spam detected (honeypot filled):', { name, email, website });
+      return NextResponse.json({ success: true });
+    }
+
+    // Validate required fields
     if (!name || !email || !subject || !category || !message) {
       return NextResponse.json(
         { error: 'Tüm alanların doldurulması zorunludur.' },
