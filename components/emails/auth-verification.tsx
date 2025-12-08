@@ -33,7 +33,7 @@ export default function AuthVerificationEmail({
           <Container className="border border-solid border-[#eaeaea] rounded my-[40px] mx-auto p-[20px] w-[465px]">
             <Section className="mt-[32px]">
               <Img
-                src="https://mekan.guru/logo.png" // Logo URL'inizi buraya ekleyin
+                src="https://www.mekan.guru/web-app-manifest-192x192.png"
                 width="40"
                 height="40"
                 alt="mekan.guru"

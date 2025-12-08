@@ -13,11 +13,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Send, Loader2 } from 'lucide-react';
 
 export function ContactForm() {
-  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -44,8 +43,7 @@ export function ContactForm() {
         throw new Error(data.error || 'Bir hata oluştu');
       }
 
-      toast({
-        title: 'Mesajınız gönderildi! ✅',
+      toast.success('Mesajınız gönderildi! ✅', {
         description: 'En kısa sürede size dönüş yapacağız.',
       });
 
@@ -58,9 +56,7 @@ export function ContactForm() {
         message: '',
       });
     } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Hata oluştu ❌',
+      toast.error('Hata oluştu ❌', {
         description: error.message || 'Mesaj gönderilemedi. Lütfen tekrar deneyin.',
       });
     } finally {
