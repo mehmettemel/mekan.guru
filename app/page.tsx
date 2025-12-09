@@ -1,4 +1,4 @@
-import { getTopCollections, getFeaturedCollection } from '@/lib/api/collections';
+import { getTopCollections, getFeaturedCollection, getRandomTopCollections } from '@/lib/api/collections';
 import { getCategories } from '@/lib/api/categories';
 import { getCities } from '@/lib/api/locations';
 import { HeroBanner } from '@/components/home/hero-banner';
@@ -51,26 +51,14 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const selectedCitySlug = params.city || 'all'; // Default to All Cities
 
   // Fetch data in parallel
-  const [featuredCollection, topCollections, categories, leaderboardCollections, cities] = await Promise.all([
+  const [featuredCollection, topCollections, categories, leaderboardCollections, cities, randomFeaturedCollections] = await Promise.all([
     getFeaturedCollection(selectedCitySlug),
     getTopCollections(selectedCitySlug, 12),
     getCategories({ parent_id: null, limit: 30 }), // Get main categories
     getTopCollections(selectedCitySlug, 20), // Get top 20 for leaderboard
     getCities(),
+    getRandomTopCollections(selectedCitySlug, 4), // Get 4 random high-scoring collections
   ]);
-
-  // Shuffle function for random selection
-  const shuffleArray = <T,>(array: T[]): T[] => {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-  };
-
-  // Get 4 random collections from top collections for featured section
-  const randomFeaturedCollections = shuffleArray(topCollections).slice(0, 4);
 
   // JSON-LD structured data for homepage
   const jsonLd = {
