@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -10,52 +10,31 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from 'sonner';
 import { Loader2, Lock } from 'lucide-react';
 
-import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-
 function ResetPasswordForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const [passwords, setPasswords] = useState({
     newPassword: '',
     confirmPassword: '',
   });
-  const [user, setUser] = useState<any>(null);
 
   const supabase = createClient();
 
   useEffect(() => {
-    const handleSession = async () => {
-      const code = searchParams.get('code');
-      
-      if (code) {
-        // Exchange code for session (PKCE flow)
-        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-        if (error) {
-          toast.error('Bağlantı Hatası', {
-            description: 'Şifre sıfırlama bağlantısı geçersiz veya süresi dolmuş.',
-          });
-          router.push('/');
-        } else if (data.session) {
-          setUser(data.session.user);
-        }
-      } else {
-        // Check if we already have a session
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          toast.error('Oturum bulunamadı', {
-            description: 'Lütfen şifre sıfırlama bağlantısına tekrar tıklayın.',
-          });
-          router.push('/');
-        } else {
-          setUser(session.user);
-        }
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Oturum bulunamadı', {
+          description: 'Lütfen şifre sıfırlama bağlantısına tekrar tıklayın.',
+        });
+        router.push('/');
       }
+      setCheckingSession(false);
     };
 
-    handleSession();
-  }, [router, supabase.auth, searchParams]);
+    checkSession();
+  }, [router, supabase.auth]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,14 +63,10 @@ function ResetPasswordForm() {
       if (error) throw error;
 
       toast.success('Başarılı', {
-        description: 'Şifreniz başarıyla güncellendi. Ana sayfaya yönlendiriliyorsunuz.',
+        description: 'Şifreniz başarıyla güncellendi.',
       });
 
-      // Redirect to home after a short delay
-      setTimeout(() => {
-        router.push('/');
-      }, 2000);
-
+      setTimeout(() => router.push('/'), 2000);
     } catch (error: any) {
       toast.error('Hata', {
         description: error.message || 'Şifre güncellenirken bir hata oluştu.',
@@ -108,7 +83,7 @@ function ResetPasswordForm() {
     }));
   };
 
-  if (!user) {
+  if (checkingSession) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -168,11 +143,13 @@ function ResetPasswordForm() {
 export default function ResetPasswordPage() {
   return (
     <div className="container mx-auto flex min-h-screen max-w-md items-center justify-center px-4 py-12">
-      <Suspense fallback={
-        <div className="flex min-h-screen items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      }>
+      <Suspense
+        fallback={
+          <div className="flex min-h-screen items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        }
+      >
         <ResetPasswordForm />
       </Suspense>
     </div>
