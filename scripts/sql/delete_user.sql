@@ -46,11 +46,11 @@ BEGIN
 
     -- Places (Mekanlar)
     -- Kullanıcının eklediği veya onayladığı mekanları silmiyoruz, sadece referansı kaldırıyoruz.
-    UPDATE public.places SET submitted_by = NULL WHERE submitted_by = v_user_id::text;
-    UPDATE public.places SET approved_by = NULL WHERE approved_by = v_user_id::text;
+    UPDATE public.places SET submitted_by = NULL WHERE submitted_by = v_user_id;
+    UPDATE public.places SET approved_by = NULL WHERE approved_by = v_user_id;
 
     -- Reports (Resolved by)
-    UPDATE public.reports SET resolved_by = NULL WHERE resolved_by = v_user_id::text;
+    UPDATE public.reports SET resolved_by = NULL WHERE resolved_by = v_user_id;
 
     -- 3. Public Users tablosundan sil
     DELETE FROM public.users WHERE id = v_user_id;

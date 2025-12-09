@@ -44,10 +44,18 @@ export function CollectionsLeaderboard({
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   
   const filteredCollections = useMemo(() => {
+    console.log('Category filter debug:', {
+      selectedCategory: selectedCategory || 'NONE (Tümü)',
+      totalCollections: collections.length,
+      collectionCategories: collections.map(c => ({ id: c.id, name: c.names?.tr, categorySlug: c.category?.slug }))
+    });
+    
     if (!selectedCategory) return collections;
-    return collections.filter(
+    const filtered = collections.filter(
       (collection) => collection.category?.slug === selectedCategory
     );
+    console.log('After filter:', filtered.length, 'collections');
+    return filtered;
   }, [selectedCategory, collections]);
   const [userVotes, setUserVotes] = useState<Record<string, number>>({});
   const [isPending, startTransition] = useTransition();
