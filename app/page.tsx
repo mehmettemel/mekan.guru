@@ -59,6 +59,19 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     getCities(),
   ]);
 
+  // Shuffle function for random selection
+  const shuffleArray = <T,>(array: T[]): T[] => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
+  // Get 4 random collections from top collections for featured section
+  const randomFeaturedCollections = shuffleArray(topCollections).slice(0, 4);
+
   // JSON-LD structured data for homepage
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -151,7 +164,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           </div>
         </div>
 
-        <CollectionFeed collections={topCollections.map(c => ({...c, places_count: c.places_count || 0})) as any} />
+        <CollectionFeed collections={randomFeaturedCollections.map(c => ({...c, places_count: c.places_count || 0})) as any} />
       </section>
 
       {/* Categories Section */}
