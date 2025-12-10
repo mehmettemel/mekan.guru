@@ -28,7 +28,7 @@ export function ModernHero() {
               className="rounded-full border-orange-200 bg-orange-50/50 px-4 py-1.5 text-sm text-orange-700 backdrop-blur-sm dark:border-orange-800/50 dark:bg-orange-900/20 dark:text-orange-400"
             >
               <Sparkles className="mr-2 h-3.5 w-3.5" />
-              <span className="font-medium">Türkiye'nin En Kapsamlı Mekan Rehberi</span>
+              <span className="font-medium">Türkiye&apos;nin En Kapsamlı Mekan Rehberi</span>
             </Badge>
           </motion.div>
 
