@@ -70,10 +70,10 @@ export async function getPlacesByLocation(locationId: string, limit = 20, catego
       .from('categories')
       .select('id')
       .eq('slug', categorySlug)
-      .single();
+      .maybeSingle();
 
     if (category) {
-      query = query.eq('category_id', category.id);
+      query = query.eq('category_id', (category as any).id);
     }
   }
 
@@ -171,7 +171,7 @@ export async function getTopPlacesByCity(citySlug: string, limit = 5) {
     .select('id')
     .eq('slug', citySlug)
     .eq('type', 'city')
-    .single();
+    .maybeSingle();
 
   if (!city) return [];
 
@@ -183,7 +183,7 @@ export async function getTopPlacesByCity(citySlug: string, limit = 5) {
       category:categories(*),
       location:locations(*)
     `)
-    .eq('location_id', city.id)
+    .eq('location_id', (city as any).id)
     .eq('status', 'approved')
     .order('vote_score', { ascending: false })
     .limit(limit);

@@ -233,9 +233,8 @@ export async function updateCollection(
   id: string,
   updates: CollectionUpdate
 ): Promise<Collection> {
-  const supabase = await createClient();
+  const supabase = (await createClient()) as any;
 
-  // @ts-ignore - Supabase generated types have inference issues with update()
   const { data, error } = await supabase
     .from('collections')
     .update(updates)
@@ -247,7 +246,7 @@ export async function updateCollection(
     handleDbError(error, 'updateCollection');
   }
 
-  return data;
+  return data as Collection;
 }
 
 /**
@@ -307,7 +306,7 @@ export async function addPlaceToCollection(
   placeId: string,
   displayOrder?: number
 ): Promise<CollectionPlace> {
-  const supabase = await createClient();
+  const supabase = (await createClient()) as any;
 
   const { data, error } = await supabase
     .from('collection_places')
@@ -355,7 +354,7 @@ export async function reorderCollectionPlaces(
   collectionId: string,
   placeOrders: { place_id: string; display_order: number }[]
 ): Promise<void> {
-  const supabase = await createClient();
+  const supabase = (await createClient()) as any;
 
   // Update each place's display order
   const updates = placeOrders.map(({ place_id, display_order }) =>
@@ -406,7 +405,7 @@ export async function toggleCollectionFeatured(
   id: string,
   isFeatured: boolean
 ): Promise<Collection> {
-  const supabase = await createClient();
+  const supabase = (await createClient()) as any;
 
   const { data, error} = await supabase
     .from('collections')
@@ -457,8 +456,8 @@ export async function getTopCollections(
     if (!collections) return [];
 
     // Transform and filter
-    const result: CollectionWithDetails[] = collections
-      .map((collection) => {
+    const result: CollectionWithDetails[] = (collections as any[])
+      .map((collection: any) => {
         const places = (collection.collection_places || []).filter(
           (cp: any) => cp.place
         );
@@ -544,9 +543,9 @@ export async function getRandomTopCollections(
     if (!collections || collections.length === 0) return [];
 
     // Filter by city if needed
-    let filteredCollections = collections;
+    let filteredCollections: any[] = collections as any[];
     if (citySlug && citySlug !== 'all') {
-      filteredCollections = collections.filter((collection) => {
+      filteredCollections = (collections as any[]).filter((collection: any) => {
         const places = (collection.collection_places || []).filter(
           (cp: any) => cp.place?.location?.slug === citySlug
         );
@@ -558,7 +557,7 @@ export async function getRandomTopCollections(
     const shuffled = [...filteredCollections].sort(() => Math.random() - 0.5);
 
     // Take requested number and transform
-    return shuffled.slice(0, limit).map((collection) => {
+    return shuffled.slice(0, limit).map((collection: any) => {
       const places = (collection.collection_places || []).filter(
         (cp: any) => cp.place
       );
